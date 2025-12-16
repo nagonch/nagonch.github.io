@@ -223,7 +223,6 @@
             <img src="./static/images/method.png" alt="Method Diagram" class="centered-image" style="max-width: 100%; height: auto;">
           </p>
           <p>
-            An overview of our light-field-based object tracking method.
             Given a light field image of a previously unseen object, we first extract an object mask using a segmentation model.
             The light field is then converted into a sparse disparity map, fused with dense monocular disparity, and unprojected to produce an object point cloud.
             Using this point cloud and camera rays, we initialize a Gaussian object representation with 3D centroids and view-dependent colors, and train it to obtain a Gaussian representation of the current frame.
