@@ -59,13 +59,15 @@
               <a href="https://roboticimaging.org/" style="display:inline-flex; align-items:center; gap:0.35rem; vertical-align:middle;">
                 <img src="./static/images/favicon.png" alt="Robotic Imaging Lab favicon" style="width:1em; height:1em; object-fit:contain; border-radius:0.15em;">
                 <span>Robotic Imaging Lab</span>
-              </a>, <a href="https://robotics.sydney.edu.au/">Australian Centre for Robotics</a>
+              </a>, <a href="https://robotics.sydney.edu.au/" style="display:inline-flex; align-items:center; gap:0.35rem; vertical-align:middle;">
+                <img src="./static/images/acfr_logo.png" alt="Australian Centre for Robotics logo" style="width:1em; height:1em; object-fit:contain; border-radius:0.15em;">
+                <span>Australian Centre for Robotics</span>
+              </a>
             </span>
-          </div>
+          </div> 
 
           <div class="column has-text-centered">
             <div class="publication-links">
-              <!-- PDF Link. -->
               <span class="link-block">
                 <a href="https://arxiv.org/abs/2512.13007"
                    class="external-link button is-normal is-rounded is-dark">
@@ -75,18 +77,6 @@
                   <span>arXiv</span>
                 </a>
               </span>
-              <!-- Video Link. -->
-              <!-- <span class="link-block">
-                <a href="https://www.youtube.com/watch?v=MrKrnHhk8IA"
-                   class="external-link button is-normal is-rounded is-dark">
-                  <span class="icon">
-                      <i class="fab fa-youtube"></i>
-                  </span>
-                  <span>Video</span>
-                </a>
-              </span> -->
-              <!-- Code Link. -->
-
               <span class="link-block">
                 <a href="https://github.com/nagonch/LiFT-6DoF"
                    class="external-link button is-normal is-rounded is-dark">
@@ -94,9 +84,8 @@
                       <i class="fab fa-github"></i>
                   </span>
                   <span>Code</span>
-                  </a>
+                </a>
               </span>
-              <!-- Dataset Link. -->
               <span class="link-block">
                 <a href="https://ses.library.usyd.edu.au/handle/2123/34631"
                    class="external-link button is-normal is-rounded is-dark">
@@ -104,9 +93,9 @@
                       <i class="far fa-images"></i>
                   </span>
                   <span>Data</span>
-                  </a>
+                </a>
+              </span>
             </div>
-
           </div>
         </div>
       </div>
@@ -120,28 +109,26 @@
     <div class="columns is-centered">
       <div class="column is-10">
         <div class="hero-body">
-        <table width="100%">
-          <tr>
-            <td>
-              <video id="jug3_4x" autoplay controls muted loop playsinline width="85%">
-                <source src="./static/videos/results_jug_tilt_gt.mp4" type="video/mp4">
-              </video>
-              <h>Ground Truth</h>
-            </td>
-            <td>
-              <video id="alignment_4x" autoplay controls muted loop playsinline width="95%">
-                <source src="./static/videos/results_ours.mp4" type="video/mp4">
-              </video>
-              <h>Ours</h>
-            </td>
-            <td>
-              <video id="alignment_4x" autoplay controls muted loop playsinline width="75%">
-                <source src="./static/videos/results_jug_tilt_fp.mp4" type="video/mp4">
-              </video>
-              <h>FoundationPose</h>
-            </td>
-          </tr>
-        </table>
+        <div style="display: flex; justify-content: center; align-items: flex-start; gap: 1rem; flex-wrap: wrap; width: 100%;">
+          <div style="text-align: center; flex: 1 1 220px; max-width: 320px;">
+            <video id="jug3_4x" autoplay controls muted loop playsinline style="width: 100%; height: auto; display: block;">
+              <source src="./static/videos/results_jug_tilt_gt.mp4" type="video/mp4">
+            </video>
+            <div>Ground Truth</div>
+          </div>
+          <div style="text-align: center; flex: 1 1 220px; max-width: 320px;">
+            <video id="alignment_4x" autoplay controls muted loop playsinline style="width: 100%; height: auto; display: block;">
+              <source src="./static/videos/results_ours.mp4" type="video/mp4">
+            </video>
+            <div>Ours</div>
+          </div>
+          <div style="text-align: center; flex: 1 1 220px; max-width: 320px;">
+            <video id="alignment_4x" autoplay controls muted loop playsinline style="width: 100%; height: auto; display: block;">
+              <source src="./static/videos/results_jug_tilt_fp.mp4" type="video/mp4">
+            </video>
+            <div>FoundationPose</div>
+          </div>
+        </div>
       </div>
 
     </div>
