@@ -1,0 +1,1315 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="description"
+        content="Reflection-Robust 6DoF Object Tracking with Light Fields: turning reflections into a pose cue.">
+  <meta name="keywords" content="light fields, 6DoF object tracking, reflective surfaces, relighting, pose estimation">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Reflection-Robust 6DoF Object Tracking with Light Fields</title>
+
+  <link href="https://fonts.googleapis.com/css?family=Google+Sans|Noto+Sans|Castoro"
+        rel="stylesheet">
+
+  <link rel="stylesheet" href="./static/css/bulma.min.css">
+  <link rel="stylesheet" href="./static/css/fontawesome.all.min.css">
+  <link rel="stylesheet" href="./static/css/index.css">
+
+  <script defer src="./static/js/fontawesome.all.min.js"></script>
+
+  <style>
+    .paper-figure {
+      max-width: 100%;
+      height: auto;
+      display: block;
+      margin: 0 auto;
+    }
+    .figure-caption {
+      font-size: 0.9rem;
+      color: #4a4a4a;
+      margin: 0.75rem auto 0;
+      max-width: 720px;
+      text-align: justify;
+    }
+    .figure-block {
+      margin-bottom: 2.75rem;
+    }
+    .figure-block:last-child {
+      margin-bottom: 0;
+    }
+    /* Supplementary galleries: one slide at a time, arrows + dots. */
+    .supp-carousel {
+      position: relative;
+      overflow: hidden;
+      background: #f5f5f5;
+      border-radius: 10px;
+      padding: 1.5rem 3.5rem 1rem;
+    }
+    .supp-carousel .item {
+      display: none;
+    }
+    .supp-carousel .item.is-active {
+      display: block;
+    }
+    .supp-carousel .supp-figure {
+      height: 380px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .supp-carousel .supp-figure img {
+      max-height: 100%;
+      max-width: 100%;
+      width: auto;
+      height: auto;
+    }
+    .supp-carousel .figure-caption {
+      margin-top: 1rem;
+      min-height: 6.5rem;
+    }
+    .gallery-nav {
+      position: absolute;
+      top: 190px;
+      transform: translateY(-50%);
+      border: none;
+      background: rgba(255, 255, 255, 0.85);
+      border-radius: 50%;
+      width: 2.5rem;
+      height: 2.5rem;
+      font-size: 1.1rem;
+      color: #363636;
+      cursor: pointer;
+      box-shadow: 0 1px 4px rgba(0, 0, 0, 0.2);
+      z-index: 2;
+    }
+    .gallery-nav:hover {
+      background: #ffffff;
+    }
+    .gallery-nav.is-prev { left: 0.6rem; }
+    .gallery-nav.is-next { right: 0.6rem; }
+    .gallery-dots {
+      text-align: center;
+      margin-top: 0.75rem;
+    }
+    .gallery-dots button {
+      border: none;
+      background: #c5c5c5;
+      border-radius: 50%;
+      width: 0.65rem;
+      height: 0.65rem;
+      margin: 0 0.25rem;
+      padding: 0;
+      cursor: pointer;
+    }
+    .gallery-dots button.is-active {
+      background: #363636;
+    }
+    .supp-heading {
+      display: flex;
+      align-items: baseline;
+      gap: 0.75rem;
+      justify-content: center;
+      margin-bottom: 1rem;
+    }
+    .supp-heading .tag {
+      vertical-align: middle;
+    }
+    .teaser-tagline {
+      max-width: 780px;
+      margin: 1.25rem auto 0;
+    }
+    /* Interactive dataset explorer. */
+    .lf-explorer {
+      background: #f5f5f5;
+      border-radius: 10px;
+      padding: 1.5rem;
+      max-width: 760px;
+      margin: 0 auto;
+    }
+    .lf-controls {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 1rem 2rem;
+      justify-content: center;
+      align-items: flex-end;
+      margin-bottom: 1rem;
+    }
+    .lf-control-label {
+      display: block;
+      font-size: 0.8rem;
+      font-weight: 600;
+      color: #4a4a4a;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+      margin-bottom: 0.35rem;
+      text-align: center;
+    }
+    .lf-buttons {
+      margin-bottom: 0 !important;
+      justify-content: center;
+    }
+    .lf-buttons .button {
+      margin-bottom: 0;
+    }
+    .lf-buttons .button.is-selected {
+      background: #363636;
+      color: #ffffff;
+      border-color: #363636;
+    }
+    .lf-slider {
+      width: 180px;
+    }
+    .lf-slider input[type="range"] {
+      width: 100%;
+      accent-color: #363636;
+      cursor: pointer;
+    }
+    .lf-slider-ticks {
+      display: flex;
+      justify-content: space-between;
+      font-size: 0.75rem;
+      color: #7a7a7a;
+      padding: 0 2px;
+    }
+    #lf-r-value,
+    .lf-r-value {
+      font-weight: 400;
+      text-transform: none;
+      color: #7a7a7a;
+    }
+    .lf-explorer-small {
+      max-width: 600px;
+      padding: 1.25rem;
+    }
+    .lf-explorer-small .lf-viewer {
+      max-width: 440px;
+      margin: 0 auto;
+    }
+    .lf-seq-nav {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 1rem;
+      margin-bottom: 0.75rem;
+    }
+    .lf-arrow {
+      border: none;
+      background: #ffffff;
+      border-radius: 50%;
+      width: 2.5rem;
+      height: 2.5rem;
+      font-size: 1.1rem;
+      color: #363636;
+      cursor: pointer;
+      box-shadow: 0 1px 4px rgba(0, 0, 0, 0.2);
+      flex-shrink: 0;
+    }
+    .lf-arrow:hover {
+      background: #eeeeee;
+    }
+    .lf-seq-label {
+      text-align: center;
+      min-width: 16rem;
+    }
+    .lf-seq-name {
+      display: block;
+      font-family: monospace;
+      font-size: 1.05rem;
+      font-weight: 600;
+      color: #363636;
+    }
+    /* Method names are prose, not identifiers. */
+    .hero-method-name {
+      font-family: 'Google Sans', 'Noto Sans', sans-serif;
+    }
+    .lf-seq-count {
+      display: block;
+      font-size: 0.75rem;
+      color: #7a7a7a;
+    }
+    .lf-viewer {
+      position: relative;
+      width: 100%;
+      aspect-ratio: 4 / 3;
+      background: #e8e8e8;
+      border-radius: 8px;
+      overflow: hidden;
+    }
+    /* All layers stay painted (occluded, not hidden) so every GIF's animation
+       clock keeps running in all browsers; the active layer is raised on top. */
+    .lf-viewer img {
+      position: absolute;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      object-fit: contain;
+      z-index: 0;
+    }
+    .lf-viewer img.is-visible {
+      z-index: 1;
+    }
+    /* Must cover the whole stack: with no layer raised, the last DOM sibling
+       would otherwise paint on top and show an unrelated combination. */
+    .lf-viewer.lf-empty::before {
+      content: 'Not available for this combination';
+      position: absolute;
+      inset: 0;
+      z-index: 2;
+      background: #e8e8e8;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: #7a7a7a;
+      font-size: 0.9rem;
+    }
+    .lf-viewer.is-loading::after {
+      content: 'loading\2026';
+      position: absolute;
+      top: 0.5rem;
+      right: 0.6rem;
+      background: rgba(255, 255, 255, 0.85);
+      border-radius: 4px;
+      padding: 0.1rem 0.5rem;
+      font-size: 0.75rem;
+      color: #4a4a4a;
+    }
+    .lf-note {
+      font-size: 0.8rem;
+      color: #7a7a7a;
+      text-align: center;
+      margin-top: 0.6rem;
+      min-height: 1.2rem;
+    }
+  </style>
+</head>
+<body>
+
+<section class="hero">
+  <div class="hero-body">
+    <div class="container is-max-desktop">
+      <div class="columns is-centered">
+        <div class="column has-text-centered">
+          <h1 class="title is-1 publication-title">Reflection-Robust 6DoF Object Tracking with Light Fields</h1>
+          <div class="is-size-5 publication-authors">
+            <span class="author-block">Anonymous Authors</span>
+          </div>
+          <div class="is-size-6 publication-authors">
+            <span class="author-block">Under review &mdash; this page is anonymized</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- Teaser: main qualitative result. -->
+<section class="hero teaser">
+  <div class="container is-max-desktop">
+    <div class="hero-body">
+      <div class="columns is-centered is-vcentered">
+        <div class="column is-half has-text-centered">
+          <!-- Hero widget: one clip, arrows flip between methods mid-playback. -->
+          <div class="lf-seq-nav">
+            <button class="lf-arrow" id="hero-prev" aria-label="Previous method">&#10094;</button>
+            <div class="lf-seq-label" style="min-width: 12rem;">
+              <span class="lf-seq-name hero-method-name" id="hero-method"></span>
+              <span class="lf-seq-count" id="hero-count"></span>
+            </div>
+            <button class="lf-arrow" id="hero-next" aria-label="Next method">&#10095;</button>
+          </div>
+          <div class="lf-viewer" id="hero-viewer"></div>
+        </div>
+        <div class="column is-half">
+          <h2 class="subtitle" style="text-align: justify;">
+            <b>Tracking a mirror-like object.</b> On a fully specular box, appearance-based
+            trackers are deceived by the moving reflections, leading to their drift. Our method turns the reflections themselves
+            into a pose cue: each light field frame is decomposed into geometry, diffuse
+            albedo, and the environment map it reflects, and the pose is refined by
+            relighting the object and descending the photometric residual. The yellow
+            outline shows the estimated pose &mdash; flip through the methods and watch
+            the baselines drift while ours stays locked on.
+          </h2>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="section">
+  <div class="container is-max-desktop">
+    <!-- Abstract. -->
+    <div class="columns is-centered has-text-centered">
+      <div class="column is-four-fifths">
+        <h2 class="title is-3">Abstract</h2>
+        <div class="content has-text-justified">
+          <p>
+            Tracking the 6DoF pose of a moving rigid object is fundamental to robotics and
+            autonomous driving, but existing trackers assume that object appearance is stable
+            across a sequence, an assumption that breaks down on reflective surfaces whose
+            appearance changes as they mirror the environment. We introduce a light field
+            based reflection-robust 6DoF tracker that turns this apparent nuisance into a
+            pose cue. Per frame, our method recovers depth robustly against reflections,
+            back-projects it into a point cloud, and estimates surface normals. It then
+            decomposes the object's view-dependent appearance into a diffuse albedo and the
+            environment map it reflects, resulting in a relightable surface light field.
+            Starting from a coarse initialization, we relight it by the recovered environment
+            map and optimize the pose on the photometric loss. Because a moving object
+            mirrors new parts of the scene, the environment map fills in as the sequence
+            proceeds, sharpening this signal over time. To evaluate this approach, we
+            introduce a light field tracking dataset re-rendered from a robotic manipulation
+            benchmark at four controlled reflectivity levels, each paired with simulated
+            depth that reproduces how consumer RGB-D sensors fail on shiny surfaces. Our
+            method matches strong baselines on diffuse objects and is the only one that holds
+            its accuracy on fully reflective objects, where every baseline degrades.
+          </p>
+        </div>
+      </div>
+    </div>
+    <!--/ Abstract. -->
+  </div>
+</section>
+
+<section class="section">
+  <div class="container is-max-desktop">
+    <div class="columns is-centered">
+      <div class="column is-full-width">
+        <h2 class="title is-3">Why Reflections Are a Pose Signal</h2>
+
+        <div class="content has-text-justified">
+          <p>
+            In classical tracking, a moving point is identified by its color, which holds
+            only for Lambertian surfaces. A light field samples a point's view-dependent
+            color, but once the point moves and is re-illuminated, its angular color
+            distribution shifts. A flatland toy example shows that the photometric loss of a
+            moving reflective point craters to zero only when the point is relit under the
+            surrounding environment &mdash; the reflection itself carries the motion.
+          </p>
+        </div>
+
+        <div class="figure-block has-text-centered">
+          <img src="./static/toy_reflection_motion_anim.gif"
+               class="paper-figure" style="max-width: 860px;"
+               alt="Flatland toy example, animated: only relit EPIs drive the photometric loss to zero at the true translation.">
+          <p class="figure-caption">
+            <b>Reflection as a signal for motion.</b> (a) A reflective surface patch in
+            flatland translates under environment illumination. (b) We sample the epipolar
+            plane images before and after the motion and correlate the two. (c) Loss versus
+            recovered translation: monocular color (orange) gives only a shallow dip, raw
+            EPIs (blue) capture view-dependence but ignore re-illumination, and only the
+            relit EPIs under the environment map (red) drive the loss to zero at the true
+            coordinate.
+          </p>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="section">
+  <div class="container is-max-desktop">
+    <div class="columns is-centered">
+      <div class="column is-full-width">
+        <h2 class="title is-3">Method</h2>
+
+        <div class="content has-text-justified">
+          <p>
+            Per frame, we segment the object and lift it to a <i>surface light field</i>: a
+            reflection-robust depth estimate is back-projected to points, normals are fitted
+            in 3D, and each point's color is observed from all subviews. Fitting a
+            dichromatic reflection model to these view-dependent samples splits appearance
+            into per-point diffuse albedos and a single environment map shared by all
+            points, with a per-direction confidence recording which parts of the map have
+            been observed. Consecutive surface light fields are aligned by a coarse feature
+            match on the diffuse colors, followed by a refinement that transforms the
+            source, relights it under the accumulated environment map, renders it, and
+            descends the photometric residual against the observed frame. Because a moving
+            object keeps mirroring new parts of the scene, the environment map fills in over
+            the sequence, and the relighting signal sharpens as tracking proceeds.
+          </p>
+        </div>
+
+        <div class="figure-block has-text-centered">
+          <img src="./static/images/paper/figure_overview_final.png"
+               class="paper-figure" style="max-width: 820px;"
+               alt="Method overview: per-frame surface light field recovery, diffuse-environment decomposition, and pose alignment by relighting.">
+          <p class="figure-caption">
+            <b>Method overview.</b> <i>Top:</i> each light field frame is processed,
+            robustly against reflections, into depth and normals, and the view-dependent
+            colors of the surface points are separated into per-point albedos and a shared
+            environment map. <i>Bottom left:</i> consecutive surface light fields are
+            related by an unknown transform; the true illumination is never observed, and in
+            its place we carry the map accumulated over previous frames. <i>Bottom right:</i>
+            matching the diffuse colors initializes the pose; the source is then transformed
+            by the candidate pose, re-shaded and relit under the carried map, and rendered,
+            and the residual against the observed target updates the pose.
+          </p>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="section">
+  <div class="container is-max-desktop">
+    <div class="columns is-centered">
+      <div class="column is-full-width">
+        <h2 class="title is-3">The Multi-Reflectivity Tracking Dataset</h2>
+
+        <div class="content has-text-justified">
+          <p>
+            To support controlled evaluation of tracking across reflectivity levels, we
+            introduce a light field object tracking dataset built by re-rendering the
+            YCBInEOAT robotic manipulation benchmark, which preserves compatibility with
+            prior baselines while making object reflectivity controllable. Eight sequences
+            cover four YCB objects under various spatial reorientations, each in two
+            geometry variants: the original textured mesh and a cube of comparable scale
+            that isolates reflectance effects from shape effects. Each frame is a 5&times;5
+            planar grid of 640&times;480 subviews at 5&nbsp;mm baseline whose central
+            subview coincides with the original YCBInEOAT viewpoint, accompanied by
+            per-subview segmentation masks, ground truth depth, the 6D object pose, and
+            calibration.
+          </p>
+          <p>
+            Each sequence is rendered at four reflectivity levels
+            r&nbsp;&isin;&nbsp;{0.0,&nbsp;0.5,&nbsp;0.7,&nbsp;1.0}. Geometry, lighting, and
+            pose are identical across the four levels, so any difference in tracking
+            performance can be attributed to reflectance alone. Ground truth depth hides how
+            consumer RGB-D sensors fail on specular surfaces, so each frame is additionally
+            paired with a simulated active-stereo depth map (stereo pair, projected infrared
+            dot pattern, semi-global block matching), mimicking an Intel RealSense: as
+            reflectivity increases, the recovered depth collapses into holes and outliers.
+          </p>
+        </div>
+
+        <!-- Interactive dataset explorer: live GIFs across geometry / reflectivity / modality. -->
+        <div class="figure-block">
+          <div class="lf-explorer">
+            <div class="lf-controls">
+              <div class="lf-control">
+                <span class="lf-control-label">Geometry</span>
+                <div class="buttons has-addons lf-buttons" id="lf-geo"></div>
+              </div>
+              <div class="lf-control">
+                <span class="lf-control-label">Modality</span>
+                <div class="buttons has-addons lf-buttons" id="lf-mod"></div>
+              </div>
+              <div class="lf-control">
+                <span class="lf-control-label">Reflectivity <span id="lf-r-value">r = 0.0</span></span>
+                <div class="lf-slider">
+                  <input type="range" id="lf-r" min="0" max="3" step="1" value="0"
+                         aria-label="Object reflectivity">
+                  <div class="lf-slider-ticks">
+                    <span>0.0</span><span>0.5</span><span>0.7</span><span>1.0</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div class="lf-seq-nav">
+              <button class="lf-arrow" id="lf-prev" aria-label="Previous sequence">&#10094;</button>
+              <div class="lf-seq-label">
+                <span class="lf-seq-name" id="lf-seq-name"></span>
+                <span class="lf-seq-count" id="lf-seq-count"></span>
+              </div>
+              <button class="lf-arrow" id="lf-next" aria-label="Next sequence">&#10095;</button>
+            </div>
+
+            <div class="lf-viewer" id="lf-viewer"></div>
+
+            <p class="lf-note" id="lf-note"></p>
+          </div>
+          <p class="figure-caption">
+            <b>Explore the dataset.</b> Every sequence is rendered at four reflectivity
+            levels in two geometry variants, each with per-subview masks, ground truth
+            depth, and simulated RGB-D sensor depth (watch it collapse as r grows).
+            Sequences are named after the YCB object in the original YCBInEOAT recording;
+            in the cube variant, the same sequence is rendered with a cube following that
+            object's trajectory.
+          </p>
+        </div>
+
+        <!-- Compact per-object reference-view widget. -->
+        <div class="figure-block">
+          <div class="lf-explorer lf-explorer-small">
+            <div class="lf-controls">
+              <div class="lf-control">
+                <span class="lf-control-label">Object</span>
+                <div class="buttons has-addons lf-buttons" id="rv-obj"></div>
+              </div>
+              <div class="lf-control">
+                <span class="lf-control-label">Modality</span>
+                <div class="buttons has-addons lf-buttons" id="rv-mod"></div>
+              </div>
+              <div class="lf-control">
+                <span class="lf-control-label">Reflectivity <span class="lf-r-value" id="rv-r-value">r = 0.0</span></span>
+                <div class="lf-slider">
+                  <input type="range" id="rv-r" min="0" max="3" step="1" value="0"
+                         aria-label="Object reflectivity">
+                  <div class="lf-slider-ticks">
+                    <span>0.0</span><span>0.5</span><span>0.7</span><span>1.0</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+            <div class="lf-viewer" id="rv-viewer"></div>
+          </div>
+          <p class="figure-caption">
+            <b>Reference views.</b> For each object, we provide calibrated reference views with two modes of depth, ground truth masks, and at all reflectivity levels.
+          </p>
+        </div>
+    </div>
+  </div>
+</section>
+
+<section class="section">
+  <div class="container is-max-desktop">
+    <div class="columns is-centered">
+      <div class="column is-full-width">
+        <h2 class="title is-3">Results</h2>
+
+        <div class="content has-text-justified">
+          <p>
+            Every method tracks all eight sequences at all four reflectivity levels. The
+            baselines receive the central subview of each light field, operating as standard
+            monocular RGB-D methods on the simulated sensor depth, while ours receives the
+            full light field and the depth it estimates from it. Our method is the only one
+            stable across reflectivity: on diffuse surfaces we trail only FoundationPose and
+            BundleSDF, whose pre-captured model and global pose-graph optimization we forgo,
+            and at full reflectivity our method is best on every metric, with the largest
+            gain in rotation, where photometric refinement is strongest.
+          </p>
+        </div>
+
+        <!-- Interactive per-method tracking results. -->
+        <div class="figure-block">
+          <div class="lf-explorer">
+            <div class="lf-controls">
+              <div class="lf-control">
+                <span class="lf-control-label">Method</span>
+                <div class="buttons has-addons lf-buttons" id="bl-method"></div>
+              </div>
+              <div class="lf-control">
+                <span class="lf-control-label">Depth</span>
+                <div class="buttons has-addons lf-buttons" id="bl-depth"></div>
+              </div>
+              <div class="lf-control">
+                <span class="lf-control-label">Geometry</span>
+                <div class="buttons has-addons lf-buttons" id="bl-geo"></div>
+              </div>
+              <div class="lf-control">
+                <span class="lf-control-label">Reflectivity <span class="lf-r-value" id="bl-r-value">r = 0.0</span></span>
+                <div class="lf-slider">
+                  <input type="range" id="bl-r" min="0" max="3" step="1" value="0"
+                         aria-label="Object reflectivity">
+                  <div class="lf-slider-ticks">
+                    <span>0.0</span><span>0.5</span><span>0.7</span><span>1.0</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div class="lf-seq-nav">
+              <button class="lf-arrow" id="bl-prev" aria-label="Previous sequence">&#10094;</button>
+              <div class="lf-seq-label">
+                <span class="lf-seq-name" id="bl-seq-name"></span>
+                <span class="lf-seq-count" id="bl-seq-count"></span>
+              </div>
+              <button class="lf-arrow" id="bl-next" aria-label="Next sequence">&#10095;</button>
+            </div>
+
+            <div class="lf-viewer" id="bl-viewer"></div>
+          </div>
+          <p class="figure-caption">
+            <b>Tracking results, method by method.</b> Each clip overlays the selected
+            method's estimated pose on the sequence. <i>Estimated</i> depth is what each
+            method would see in practice &mdash; the simulated sensor depth for the
+            baselines and the light-field estimate for ours &mdash; while <i>ground
+            truth</i> depth isolates the effect of reflective appearance alone. LoFTR
+            runs on sensor depth only.
+          </p>
+        </div>
+
+        <div class="figure-block has-text-centered">
+          <img src="./static/images/paper/figure_adds_vs_reflectivity.png"
+               class="paper-figure" style="max-width: 760px;"
+               alt="Tracking accuracy versus object reflectivity: ours stays flat while baselines fall off.">
+          <p class="figure-caption">
+            <b>Tracking accuracy versus object reflectivity r</b>, for the objects (top) and
+            cube (bottom), averaged over the eight sequences. Ours (red) stays flat on the
+            objects while the baselines fall off with reflectivity. On the planar cube,
+            which is severely underconstrained, the advantage does not hold.
+          </p>
+        </div>
+
+        <div class="figure-block has-text-centered">
+          <img src="./static/images/paper/figure_representation.png"
+               class="paper-figure" style="max-width: 820px;"
+               alt="Recovered geometry, diffuse-environment decomposition, and relit renders per object.">
+          <p class="figure-caption">
+            <b>Relightable surface light field representation</b>, recovered in a single
+            feed-forward pass from one light field capture, on estimated depth at
+            r&nbsp;=&nbsp;0.7. Each row is one object; the columns show the recovered
+            geometry, the diffuse&ndash;environment decomposition, and the relit render.
+          </p>
+        </div>
+
+        <!-- Interactive ablation widget. -->
+        <div class="figure-block">
+          <div class="lf-explorer">
+            <div class="lf-controls">
+              <div class="lf-control">
+                <span class="lf-control-label">Mode</span>
+                <div class="buttons has-addons lf-buttons" id="ab-mode"></div>
+              </div>
+              <div class="lf-control">
+                <span class="lf-control-label">Geometry</span>
+                <div class="buttons has-addons lf-buttons" id="ab-geo"></div>
+              </div>
+              <div class="lf-control">
+                <span class="lf-control-label">Reflectivity <span class="lf-r-value" id="ab-r-value">r = 0.0</span></span>
+                <div class="lf-slider">
+                  <input type="range" id="ab-r" min="0" max="3" step="1" value="0"
+                         aria-label="Object reflectivity">
+                  <div class="lf-slider-ticks">
+                    <span>0.0</span><span>0.5</span><span>0.7</span><span>1.0</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div class="lf-seq-nav">
+              <button class="lf-arrow" id="ab-prev" aria-label="Previous sequence">&#10094;</button>
+              <div class="lf-seq-label">
+                <span class="lf-seq-name" id="ab-seq-name"></span>
+                <span class="lf-seq-count" id="ab-seq-count"></span>
+              </div>
+              <button class="lf-arrow" id="ab-next" aria-label="Next sequence">&#10095;</button>
+            </div>
+
+            <div class="lf-viewer" id="ab-viewer"></div>
+          </div>
+          <p class="figure-caption">
+            <b>Ablations, one component at a time.</b> <i>Full</i> is our complete
+            pipeline on light field depth with ground truth masks.
+            <i>Predicted masks</i> substitutes our own segmentation for the ground truth
+            masks. <i>No refinement</i> drops the photometric pose refinement,
+            <i>no separation</i> drops the diffuse&ndash;reflection decomposition (the
+            coarse frontend then matches on the raw reflective image), and
+            <i>sensor depth</i> replaces the light field depth with the simulated RGB-D
+            sensor depth &mdash; the most damaging change. Differences are clearest at
+            high reflectivity.
+          </p>
+        </div>
+
+        <!-- Supplementary results carousel. -->
+        <div class="supp-heading">
+          <h3 class="title is-5" style="margin-bottom: 0;">More results</h3>
+          <span class="tag is-light">from the supplementary material</span>
+        </div>
+        <div class="supp-carousel">
+          <div class="item">
+            <div class="supp-figure">
+              <img src="./static/images/paper/figure_envmap_reconstruction.png"
+                   alt="Environment map reconstruction filling in over time as the object motion exposes new reflection directions.">
+            </div>
+            <p class="figure-caption">
+              <b>Environment map reconstruction over time</b> on the reflective cube
+              (r&nbsp;=&nbsp;0.7, estimated depth). Object motion exposes new reflection
+              directions, filling in the map over time and approaching the ground truth
+              panorama (right), so the relighting signal sharpens as the sequence proceeds.
+            </p>
+          </div>
+          <div class="item">
+            <div class="supp-figure">
+              <img src="./static/images/paper/figure_reflection_separation.png"
+                   alt="Diffuse and reflected components separated under ground truth and estimated depth.">
+            </div>
+            <p class="figure-caption">
+              <b>Reflection separation</b> at r&nbsp;=&nbsp;0.7. Each object (rows) is
+              decomposed into a diffuse component bound to the surface and a reflected
+              component bound to the environment, shown under ground truth and estimated
+              depth. Ground truth depth yields the cleaner separation, while normal noise
+              from estimated depth blurs the environment map and leaks reflected content
+              into the diffuse component.
+            </p>
+          </div>
+          <div class="item">
+            <div class="supp-figure">
+              <img src="./static/images/paper/figure_depth_influence.png"
+                   alt="Tracking under ground truth versus deployment depth for all methods.">
+            </div>
+            <p class="figure-caption">
+              <b>Tracking under ground truth versus deployment depth.</b> Mean ADD-S under
+              ground truth depth (dashed) and each method's deployment depth (solid). With
+              clean depth the baselines barely degrade on the objects, so their collapse
+              under sensor depth is caused by depth corruption rather than reflective
+              appearance.
+            </p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<footer class="footer">
+  <div class="container">
+    <div class="columns is-centered">
+      <div class="column is-8">
+        <div class="content has-text-centered">
+          <p>
+            This page is anonymized for review. Website template adapted from the
+            Nerfies project page, licensed under a Creative Commons
+            Attribution-ShareAlike 4.0 International License.
+          </p>
+        </div>
+      </div>
+    </div>
+  </div>
+</footer>
+
+<script>
+  document.addEventListener('DOMContentLoaded', function () {
+    document.querySelectorAll('.supp-carousel').forEach(function (gallery) {
+      var items = Array.prototype.slice.call(gallery.querySelectorAll('.item'));
+      if (items.length === 0) return;
+      var current = 0;
+
+      var prev = document.createElement('button');
+      prev.className = 'gallery-nav is-prev';
+      prev.setAttribute('aria-label', 'Previous figure');
+      prev.innerHTML = '&#10094;';
+      var next = document.createElement('button');
+      next.className = 'gallery-nav is-next';
+      next.setAttribute('aria-label', 'Next figure');
+      next.innerHTML = '&#10095;';
+      gallery.appendChild(prev);
+      gallery.appendChild(next);
+
+      var dots = document.createElement('div');
+      dots.className = 'gallery-dots';
+      var dotButtons = items.map(function (_, i) {
+        var dot = document.createElement('button');
+        dot.setAttribute('aria-label', 'Go to figure ' + (i + 1));
+        dot.addEventListener('click', function () { show(i); });
+        dots.appendChild(dot);
+        return dot;
+      });
+      gallery.appendChild(dots);
+
+      function show(i) {
+        current = (i + items.length) % items.length;
+        items.forEach(function (item, j) {
+          item.classList.toggle('is-active', j === current);
+        });
+        dotButtons.forEach(function (dot, j) {
+          dot.classList.toggle('is-active', j === current);
+        });
+      }
+
+      prev.addEventListener('click', function () { show(current - 1); });
+      next.addEventListener('click', function () { show(current + 1); });
+      show(0);
+    });
+  });
+
+  // Interactive GIF explorers. Each widget stacks all its layers as blob-backed
+  // <img> elements inserted in the same tick, so every layer's animation clock
+  // starts together; control toggles only raise a layer (z-index) and never
+  // restart playback. Only actions that change the underlying clip set
+  // (sequence arrows, object picker) rebuild a stack and restart from frame 0.
+  document.addEventListener('DOMContentLoaded', function () {
+    var REFLECTIVITIES = ['0.0', '0.5', '0.7', '1.0'];
+    var MODALITIES = [
+      { key: 'rgb', label: 'RGB' },
+      { key: 'mask', label: 'Mask' },
+      { key: 'depth_gt', label: 'Depth (GT)' },
+      { key: 'depth_sim', label: 'Depth (sensor)' }
+    ];
+
+    function makeButtons(containerId, options, activeKey, onPick) {
+      var container = document.getElementById(containerId);
+      options.forEach(function (opt) {
+        var btn = document.createElement('button');
+        btn.className = 'button is-small';
+        btn.textContent = opt.label;
+        btn.dataset.key = opt.key;
+        if (opt.key === activeKey) btn.classList.add('is-selected');
+        btn.addEventListener('click', function () {
+          container.querySelectorAll('.button').forEach(function (b) {
+            b.classList.toggle('is-selected', b === btn);
+          });
+          onPick(opt.key);
+        });
+        container.appendChild(btn);
+      });
+    }
+
+    function gifStack(viewerId) {
+      var viewer = document.getElementById(viewerId);
+      var token = 0;
+      var active = '';
+      function apply() {
+        var found = false;
+        viewer.querySelectorAll('img').forEach(function (img) {
+          var on = img.dataset.key === active;
+          img.classList.toggle('is-visible', on);
+          if (on) found = true;
+        });
+        viewer.classList.toggle(
+          'lf-empty', !found && !viewer.classList.contains('is-loading'));
+      }
+      function fill(entries) {
+        viewer.querySelectorAll('img').forEach(function (img) {
+          if (img.src.indexOf('blob:') === 0) URL.revokeObjectURL(img.src);
+        });
+        viewer.innerHTML = '';
+        entries.forEach(function (e) {
+          var img = document.createElement('img');
+          img.src = e.src;
+          img.dataset.key = e.key;
+          img.alt = e.alt;
+          viewer.appendChild(img);
+        });
+        viewer.classList.remove('is-loading');
+        apply();
+      }
+      return {
+        setActive: function (key) { active = key; apply(); },
+        load: function (specs) {
+          var t = ++token;
+          viewer.classList.add('is-loading');
+          Promise.all(specs.map(function (w) {
+            return fetch(w.src)
+              .then(function (resp) {
+                if (!resp.ok) return null; // missing file: skip this layer
+                return resp.blob().then(function (blob) {
+                  return { key: w.key, alt: w.alt, src: URL.createObjectURL(blob) };
+                });
+              })
+              .catch(function () { return null; });
+          })).then(function (loaded) {
+            var got = loaded.filter(Boolean);
+            if (t !== token) {
+              got.forEach(function (l) { URL.revokeObjectURL(l.src); });
+              return;
+            }
+            // Nothing fetched at all (e.g. file://): fall back to direct sources.
+            fill(got.length ? got : specs);
+          });
+        }
+      };
+    }
+
+    // Sequence explorer.
+    (function () {
+      if (!document.getElementById('lf-viewer')) return;
+      var GIF_DIR = './static/dataset_gifs/';
+      var SEQUENCES = [
+        'bleach0',
+        'bleach_hard_00_03_chaitanya',
+        'cracker_box_reorient',
+        'cracker_box_yalehand0',
+        'mustard0',
+        'mustard_easy_00_02',
+        'sugar_box1',
+        'sugar_box_yalehand0'
+      ];
+      var GEOMETRIES = [
+        { key: 'objects', label: 'Objects' },
+        { key: 'cube', label: 'Cube' }
+      ];
+      var state = { geo: 'objects', seq: 0, r: '0.0', mod: 'rgb' };
+      var stack = gifStack('lf-viewer');
+      var seqName = document.getElementById('lf-seq-name');
+      var seqCount = document.getElementById('lf-seq-count');
+      var note = document.getElementById('lf-note');
+      var rSlider = document.getElementById('lf-r');
+      var rValue = document.getElementById('lf-r-value');
+
+      function activeKey() {
+        return state.geo + '|' + state.r + '|' + state.mod;
+      }
+
+      function updateLabels() {
+        seqName.textContent = SEQUENCES[state.seq];
+        seqCount.textContent = 'sequence ' + (state.seq + 1) + ' / ' + SEQUENCES.length;
+        rValue.textContent = 'r = ' + state.r;
+        note.textContent = state.geo === 'cube'
+          ? 'Cube variant: a cube follows the ' + SEQUENCES[state.seq] + ' trajectory in place of the original object.'
+          : 'Original object on the ' + SEQUENCES[state.seq] + ' trajectory.';
+      }
+
+      function rebuildStack() {
+        var seq = SEQUENCES[state.seq];
+        var specs = [];
+        GEOMETRIES.forEach(function (geo) {
+          REFLECTIVITIES.forEach(function (r) {
+            MODALITIES.forEach(function (mod) {
+              specs.push({
+                key: geo.key + '|' + r + '|' + mod.key,
+                src: GIF_DIR + geo.key + '_' + r + '_' + seq + '_' + mod.key + '.gif',
+                alt: seq + ' (' + geo.label + ') at reflectivity ' + r + ', ' + mod.label
+              });
+            });
+          });
+        });
+        stack.setActive(activeKey());
+        stack.load(specs);
+        updateLabels();
+      }
+
+      makeButtons('lf-geo', GEOMETRIES, state.geo, function (key) {
+        state.geo = key;
+        stack.setActive(activeKey());
+        updateLabels();
+      });
+      makeButtons('lf-mod', MODALITIES, state.mod, function (key) {
+        state.mod = key;
+        stack.setActive(activeKey());
+      });
+
+      rSlider.addEventListener('input', function () {
+        state.r = REFLECTIVITIES[parseInt(rSlider.value, 10)];
+        stack.setActive(activeKey());
+        updateLabels();
+      });
+
+      document.getElementById('lf-prev').addEventListener('click', function () {
+        state.seq = (state.seq - 1 + SEQUENCES.length) % SEQUENCES.length;
+        rebuildStack();
+      });
+      document.getElementById('lf-next').addEventListener('click', function () {
+        state.seq = (state.seq + 1) % SEQUENCES.length;
+        rebuildStack();
+      });
+
+      // Browsers may restore a previously dragged slider position across
+      // reloads; pin it to the state so knob and images always agree.
+      rSlider.value = REFLECTIVITIES.indexOf(state.r);
+      rebuildStack();
+    })();
+
+    // Reference-view widget.
+    (function () {
+      if (!document.getElementById('rv-viewer')) return;
+      var GIF_DIR = './static/ref_views_gifs/';
+      var OBJECTS = [
+        { key: 'bleach_cleanser', label: 'Bleach cleanser' },
+        { key: 'cracker_box', label: 'Cracker box' },
+        { key: 'mustard_bottle', label: 'Mustard bottle' },
+        { key: 'sugar_box', label: 'Sugar box' },
+        { key: 'cube', label: 'Cube' }
+      ];
+      var state = { obj: 'mustard_bottle', r: '0.0', mod: 'rgb' };
+      var stack = gifStack('rv-viewer');
+      var rSlider = document.getElementById('rv-r');
+      var rValue = document.getElementById('rv-r-value');
+
+      function activeKey() {
+        return state.r + '|' + state.mod;
+      }
+
+      function rebuildStack() {
+        var specs = [];
+        REFLECTIVITIES.forEach(function (r) {
+          MODALITIES.forEach(function (mod) {
+            specs.push({
+              key: r + '|' + mod.key,
+              src: GIF_DIR + state.obj + '_' + r + '_' + mod.key + '.gif',
+              alt: state.obj + ' reference views at reflectivity ' + r + ', ' + mod.label
+            });
+          });
+        });
+        stack.setActive(activeKey());
+        stack.load(specs);
+      }
+
+      makeButtons('rv-obj', OBJECTS, state.obj, function (key) {
+        state.obj = key;
+        rebuildStack();
+      });
+      makeButtons('rv-mod', MODALITIES, state.mod, function (key) {
+        state.mod = key;
+        stack.setActive(activeKey());
+      });
+
+      rSlider.addEventListener('input', function () {
+        state.r = REFLECTIVITIES[parseInt(rSlider.value, 10)];
+        stack.setActive(activeKey());
+        rValue.textContent = 'r = ' + state.r;
+      });
+
+      rSlider.value = REFLECTIVITIES.indexOf(state.r);
+      rebuildStack();
+    })();
+
+    // Per-method tracking results widget.
+    (function () {
+      if (!document.getElementById('bl-viewer')) return;
+      var GIF_DIR = './baseline_gifs/';
+      var SEQUENCES = [
+        'bleach0',
+        'bleach_hard_00_03_chaitanya',
+        'cracker_box_reorient',
+        'cracker_box_yalehand0',
+        'mustard0',
+        'mustard_easy_00_02',
+        'sugar_box1',
+        'sugar_box_yalehand0'
+      ];
+      var GEOMETRIES = [
+        { key: 'objects', label: 'Objects' },
+        { key: 'cube', label: 'Cube' }
+      ];
+      var METHODS = [
+        { key: 'ours', label: 'Ours' },
+        { key: 'fp', label: 'FoundationPose' },
+        { key: 'bsdf', label: 'BundleSDF' },
+        { key: 'loftr', label: 'LoFTR' },
+        { key: 'icp', label: 'ICP' },
+        { key: 'pnp', label: 'PnP' }
+      ];
+      var DEPTHS = [
+        { key: 'dep', label: 'Estimated' },
+        { key: 'gt', label: 'Ground truth' }
+      ];
+      var state = { geo: 'objects', seq: 0, r: '0.0', method: 'ours', depth: 'dep' };
+      var stack = gifStack('bl-viewer');
+      var seqName = document.getElementById('bl-seq-name');
+      var seqCount = document.getElementById('bl-seq-count');
+      var rSlider = document.getElementById('bl-r');
+      var rValue = document.getElementById('bl-r-value');
+
+      // The deployment-depth file token differs per method: the baselines run
+      // on the simulated sensor depth, ours on its light field estimate.
+      function depthToken(method, depth) {
+        if (depth === 'gt') return 'gt';
+        return method === 'ours' ? 'lf' : 'synth';
+      }
+
+      function available(method, depth) {
+        return !(method === 'loftr' && depth === 'gt');
+      }
+
+      function activeKey() {
+        return state.geo + '|' + state.r + '|' + state.method + '|' + state.depth;
+      }
+
+      function updateLabels() {
+        seqName.textContent = SEQUENCES[state.seq];
+        seqCount.textContent = 'sequence ' + (state.seq + 1) + ' / ' + SEQUENCES.length;
+        rValue.textContent = 'r = ' + state.r;
+      }
+
+      // LoFTR has no ground-truth-depth runs: grey the option out and fall
+      // back to deployment depth if it was selected.
+      function syncDepthButtons() {
+        var isLoftr = state.method === 'loftr';
+        document.querySelector('#bl-depth .button[data-key="gt"]').disabled = isLoftr;
+        if (isLoftr && state.depth === 'gt') {
+          state.depth = 'dep';
+          document.querySelectorAll('#bl-depth .button').forEach(function (b) {
+            b.classList.toggle('is-selected', b.dataset.key === state.depth);
+          });
+        }
+      }
+
+      function rebuildStack() {
+        var seq = SEQUENCES[state.seq];
+        var specs = [];
+        GEOMETRIES.forEach(function (geo) {
+          REFLECTIVITIES.forEach(function (r) {
+            METHODS.forEach(function (method) {
+              DEPTHS.forEach(function (depth) {
+                if (!available(method.key, depth.key)) return;
+                specs.push({
+                  key: geo.key + '|' + r + '|' + method.key + '|' + depth.key,
+                  src: GIF_DIR + geo.key + '_' + r + '_' + seq + '_' + method.key
+                    + '_' + depthToken(method.key, depth.key) + '.gif',
+                  alt: method.label + ' on ' + seq + ' (' + geo.label + ') at reflectivity '
+                    + r + ', ' + depth.label + ' depth'
+                });
+              });
+            });
+          });
+        });
+        stack.setActive(activeKey());
+        stack.load(specs);
+        updateLabels();
+      }
+
+      makeButtons('bl-method', METHODS, state.method, function (key) {
+        state.method = key;
+        syncDepthButtons();
+        stack.setActive(activeKey());
+      });
+      makeButtons('bl-depth', DEPTHS, state.depth, function (key) {
+        state.depth = key;
+        stack.setActive(activeKey());
+      });
+      makeButtons('bl-geo', GEOMETRIES, state.geo, function (key) {
+        state.geo = key;
+        stack.setActive(activeKey());
+      });
+
+      rSlider.addEventListener('input', function () {
+        state.r = REFLECTIVITIES[parseInt(rSlider.value, 10)];
+        stack.setActive(activeKey());
+        updateLabels();
+      });
+
+      document.getElementById('bl-prev').addEventListener('click', function () {
+        state.seq = (state.seq - 1 + SEQUENCES.length) % SEQUENCES.length;
+        rebuildStack();
+      });
+      document.getElementById('bl-next').addEventListener('click', function () {
+        state.seq = (state.seq + 1) % SEQUENCES.length;
+        rebuildStack();
+      });
+
+      rSlider.value = REFLECTIVITIES.indexOf(state.r);
+      syncDepthButtons();
+      rebuildStack();
+    })();
+
+    // Ablation widget.
+    (function () {
+      if (!document.getElementById('ab-viewer')) return;
+      var GIF_DIR = './ablation_gifs/';
+      var SEQUENCES = [
+        'bleach0',
+        'bleach_hard_00_03_chaitanya',
+        'cracker_box_reorient',
+        'cracker_box_yalehand0',
+        'mustard0',
+        'mustard_easy_00_02',
+        'sugar_box1',
+        'sugar_box_yalehand0'
+      ];
+      var GEOMETRIES = [
+        { key: 'objects', label: 'Objects' },
+        { key: 'cube', label: 'Cube' }
+      ];
+      // File tokens carry their own depth suffix: every mode runs on light
+      // field depth (_lf) except the sensor-depth ablation (_synth).
+      var MODES = [
+        { key: 'full_gt_mask_lf', label: 'Full' },
+        { key: 'full_lf', label: 'Predicted masks' },
+        { key: 'no_refine_lf', label: 'No refinement' },
+        { key: 'no_separation_lf', label: 'No separation' },
+        { key: 'synth_depth_synth', label: 'Sensor depth' }
+      ];
+      var state = { geo: 'objects', seq: 0, r: '0.0', mode: 'full_gt_mask_lf' };
+      var stack = gifStack('ab-viewer');
+      var seqName = document.getElementById('ab-seq-name');
+      var seqCount = document.getElementById('ab-seq-count');
+      var rSlider = document.getElementById('ab-r');
+      var rValue = document.getElementById('ab-r-value');
+
+      function activeKey() {
+        return state.geo + '|' + state.r + '|' + state.mode;
+      }
+
+      function updateLabels() {
+        seqName.textContent = SEQUENCES[state.seq];
+        seqCount.textContent = 'sequence ' + (state.seq + 1) + ' / ' + SEQUENCES.length;
+        rValue.textContent = 'r = ' + state.r;
+      }
+
+      function rebuildStack() {
+        var seq = SEQUENCES[state.seq];
+        var specs = [];
+        GEOMETRIES.forEach(function (geo) {
+          REFLECTIVITIES.forEach(function (r) {
+            MODES.forEach(function (mode) {
+              specs.push({
+                key: geo.key + '|' + r + '|' + mode.key,
+                src: GIF_DIR + geo.key + '_' + r + '_' + seq + '_' + mode.key + '.gif',
+                alt: mode.label + ' variant on ' + seq + ' (' + geo.label
+                  + ') at reflectivity ' + r
+              });
+            });
+          });
+        });
+        stack.setActive(activeKey());
+        stack.load(specs);
+        updateLabels();
+      }
+
+      makeButtons('ab-mode', MODES, state.mode, function (key) {
+        state.mode = key;
+        stack.setActive(activeKey());
+      });
+      makeButtons('ab-geo', GEOMETRIES, state.geo, function (key) {
+        state.geo = key;
+        stack.setActive(activeKey());
+      });
+
+      rSlider.addEventListener('input', function () {
+        state.r = REFLECTIVITIES[parseInt(rSlider.value, 10)];
+        stack.setActive(activeKey());
+        updateLabels();
+      });
+
+      document.getElementById('ab-prev').addEventListener('click', function () {
+        state.seq = (state.seq - 1 + SEQUENCES.length) % SEQUENCES.length;
+        rebuildStack();
+      });
+      document.getElementById('ab-next').addEventListener('click', function () {
+        state.seq = (state.seq + 1) % SEQUENCES.length;
+        rebuildStack();
+      });
+
+      rSlider.value = REFLECTIVITIES.indexOf(state.r);
+      rebuildStack();
+    })();
+
+    // Hero widget: the fully reflective sugar box, one method at a time.
+    // A single 6-layer stack is loaded once, so the arrows swap methods
+    // mid-playback without ever restarting the clip.
+    (function () {
+      if (!document.getElementById('hero-viewer')) return;
+      var GIF_DIR = './baseline_gifs/';
+      var METHODS = [
+        { file: 'ours_lf', label: 'Ours' },
+        { file: 'fp_synth', label: 'FoundationPose' },
+        { file: 'bsdf_synth', label: 'BundleSDF' },
+        { file: 'loftr_synth', label: 'LoFTR' },
+        { file: 'icp_synth', label: 'ICP' },
+        { file: 'pnp_synth', label: 'PnP' }
+      ];
+      var current = 0;
+      var stack = gifStack('hero-viewer');
+      var methodName = document.getElementById('hero-method');
+      var methodCount = document.getElementById('hero-count');
+
+      function show(i) {
+        current = (i + METHODS.length) % METHODS.length;
+        stack.setActive(METHODS[current].file);
+        methodName.textContent = METHODS[current].label;
+        methodCount.textContent = 'method ' + (current + 1) + ' / ' + METHODS.length;
+      }
+
+      document.getElementById('hero-prev').addEventListener('click', function () {
+        show(current - 1);
+      });
+      document.getElementById('hero-next').addEventListener('click', function () {
+        show(current + 1);
+      });
+
+      stack.setActive(METHODS[current].file);
+      stack.load(METHODS.map(function (m) {
+        return {
+          key: m.file,
+          src: GIF_DIR + 'objects_1.0_sugar_box1_' + m.file + '.gif',
+          alt: m.label + ' tracking the fully reflective sugar box'
+        };
+      }));
+      show(0);
+    })();
+  });
+</script>
+
+</body>
+</html>
