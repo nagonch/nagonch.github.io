@@ -21,6 +21,15 @@
       display: block;
       margin: 0 auto;
     }
+    /* The per-figure inline max-width (e.g. 860px) is a desktop cap only;
+       inline styles would otherwise beat the class rule and overflow phones.
+       Below tablet width, every standalone figure fits its container. */
+    @media screen and (max-width: 768px) {
+      .paper-figure {
+        max-width: 100% !important;
+        width: 100%;
+      }
+    }
     .figure-caption {
       font-size: 0.9rem;
       color: #4a4a4a;
