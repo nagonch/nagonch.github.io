@@ -12,10 +12,7 @@
         rel="stylesheet">
 
   <link rel="stylesheet" href="./static/css/bulma.min.css">
-  <link rel="stylesheet" href="./static/css/fontawesome.all.min.css">
   <link rel="stylesheet" href="./static/css/index.css">
-
-  <script defer src="./static/js/fontawesome.all.min.js"></script>
 
   <style>
     .paper-figure {
@@ -235,9 +232,10 @@
       border-radius: 8px;
       overflow: hidden;
     }
-    /* All layers stay painted (occluded, not hidden) so every GIF's animation
-       clock keeps running in all browsers; the active layer is raised on top. */
-    .lf-viewer img {
+    /* All layers stay stacked; the active layer is raised on top and the
+       shared playhead is carried across switches by the script. */
+    .lf-viewer img,
+    .lf-viewer video {
       position: absolute;
       inset: 0;
       width: 100%;
@@ -245,7 +243,8 @@
       object-fit: contain;
       z-index: 0;
     }
-    .lf-viewer img.is-visible {
+    .lf-viewer img.is-visible,
+    .lf-viewer video.is-visible {
       z-index: 1;
     }
     /* Must cover the whole stack: with no layer raised, the last DOM sibling
@@ -387,9 +386,11 @@
         </div>
 
         <div class="figure-block has-text-centered">
-          <img src="./static/toy_reflection_motion_anim.gif"
-               class="paper-figure" style="max-width: 860px;"
-               alt="Flatland toy example, animated: only relit EPIs drive the photometric loss to zero at the true translation.">
+          <video autoplay muted loop playsinline preload="metadata"
+                 class="paper-figure" style="max-width: 860px;"
+                 aria-label="Flatland toy example, animated: only relit EPIs drive the photometric loss to zero at the true translation.">
+            <source src="./static/toy_reflection_motion_anim.mp4" type="video/mp4">
+          </video>
           <p class="figure-caption">
             <b>Reflection as a signal for motion.</b> (a) A reflective surface patch in
             flatland translates under environment illumination. (b) We sample the epipolar
@@ -429,7 +430,7 @@
         </div>
 
         <div class="figure-block has-text-centered">
-          <img src="./static/images/paper/figure_overview_final.png"
+          <img loading="lazy" decoding="async" src="./static/images/paper/figure_overview_final.png"
                class="paper-figure" style="max-width: 820px;"
                alt="Method overview: per-frame surface light field recovery, diffuse-environment decomposition, and pose alignment by relighting.">
           <p class="figure-caption">
@@ -481,7 +482,7 @@
           </p>
         </div>
 
-        <!-- Interactive dataset explorer: live GIFs across geometry / reflectivity / modality. -->
+        <!-- Interactive dataset explorer: live clips across geometry / reflectivity / modality. -->
         <div class="figure-block">
           <div class="lf-explorer">
             <div class="lf-controls">
@@ -589,10 +590,6 @@
                 <div class="buttons has-addons lf-buttons" id="bl-method"></div>
               </div>
               <div class="lf-control">
-                <span class="lf-control-label">Depth</span>
-                <div class="buttons has-addons lf-buttons" id="bl-depth"></div>
-              </div>
-              <div class="lf-control">
                 <span class="lf-control-label">Geometry</span>
                 <div class="buttons has-addons lf-buttons" id="bl-geo"></div>
               </div>
@@ -621,16 +618,14 @@
           </div>
           <p class="figure-caption">
             <b>Tracking results, method by method.</b> Each clip overlays the selected
-            method's estimated pose on the sequence. <i>Estimated</i> depth is what each
-            method would see in practice &mdash; the simulated sensor depth for the
-            baselines and the light-field estimate for ours &mdash; while <i>ground
-            truth</i> depth isolates the effect of reflective appearance alone. LoFTR
-            runs on sensor depth only.
+            method's estimated pose on the sequence. Every method runs on the depth it
+            would see in practice &mdash; the simulated sensor depth for the baselines
+            and the light-field estimate for ours.
           </p>
         </div>
 
         <div class="figure-block has-text-centered">
-          <img src="./static/images/paper/figure_adds_vs_reflectivity.png"
+          <img loading="lazy" decoding="async" src="./static/images/paper/figure_adds_vs_reflectivity.png"
                class="paper-figure" style="max-width: 760px;"
                alt="Tracking accuracy versus object reflectivity: ours stays flat while baselines fall off.">
           <p class="figure-caption">
@@ -642,7 +637,7 @@
         </div>
 
         <div class="figure-block has-text-centered">
-          <img src="./static/images/paper/figure_representation.png"
+          <img loading="lazy" decoding="async" src="./static/images/paper/figure_representation.png"
                class="paper-figure" style="max-width: 820px;"
                alt="Recovered geometry, diffuse-environment decomposition, and relit renders per object.">
           <p class="figure-caption">
@@ -709,7 +704,7 @@
         <div class="supp-carousel">
           <div class="item">
             <div class="supp-figure">
-              <img src="./static/images/paper/figure_envmap_reconstruction.png"
+              <img loading="lazy" decoding="async" src="./static/images/paper/figure_envmap_reconstruction.png"
                    alt="Environment map reconstruction filling in over time as the object motion exposes new reflection directions.">
             </div>
             <p class="figure-caption">
@@ -721,7 +716,7 @@
           </div>
           <div class="item">
             <div class="supp-figure">
-              <img src="./static/images/paper/figure_reflection_separation.png"
+              <img loading="lazy" decoding="async" src="./static/images/paper/figure_reflection_separation.png"
                    alt="Diffuse and reflected components separated under ground truth and estimated depth.">
             </div>
             <p class="figure-caption">
@@ -735,7 +730,7 @@
           </div>
           <div class="item">
             <div class="supp-figure">
-              <img src="./static/images/paper/figure_depth_influence.png"
+              <img loading="lazy" decoding="async" src="./static/images/paper/figure_depth_influence.png"
                    alt="Tracking under ground truth versus deployment depth for all methods.">
             </div>
             <p class="figure-caption">
@@ -813,17 +808,17 @@
     });
   });
 
-  // Interactive GIF explorers. Each widget stacks all its layers as blob-backed
-  // <img> elements inserted in the same tick, so every layer's animation clock
-  // starts together; control toggles only raise a layer (z-index) and never
-  // restart playback. Only actions that change the underlying clip set
-  // (sequence arrows, object picker) rebuild a stack and restart from frame 0.
+  // Interactive clip explorers. Each widget stacks one <video> element per
+  // combination, all created with preload="none" so only the active clip is
+  // ever downloaded. Control toggles raise a layer and carry the playhead
+  // over, so the clip keeps playing from the same moment instead of
+  // restarting. Only actions that change the underlying clip set (sequence
+  // arrows, object picker) rebuild a stack and restart from frame 0. Stacks
+  // stay dormant until scrolled into view and pause when scrolled away.
   document.addEventListener('DOMContentLoaded', function () {
     var REFLECTIVITIES = ['0.0', '0.5', '0.7', '1.0'];
     var MODALITIES = [
       { key: 'rgb', label: 'RGB' },
-      { key: 'mask', label: 'Mask' },
-      { key: 'depth_gt', label: 'Depth (GT)' },
       { key: 'depth_sim', label: 'Depth (sensor)' }
     ];
 
@@ -845,58 +840,120 @@
       });
     }
 
-    function gifStack(viewerId) {
+    function videoStack(viewerId, opts) {
+      opts = opts || {};
       var viewer = document.getElementById(viewerId);
-      var token = 0;
+      var videos = {};   // key -> <video>, removed again if its file is missing
       var active = '';
-      function apply() {
-        var found = false;
-        viewer.querySelectorAll('img').forEach(function (img) {
-          var on = img.dataset.key === active;
-          img.classList.toggle('is-visible', on);
-          if (on) found = true;
-        });
-        viewer.classList.toggle(
-          'lf-empty', !found && !viewer.classList.contains('is-loading'));
+      var token = 0;     // invalidates stale async activations
+      var clock = 0;     // shared playhead, carried across layer switches
+      var visible = false;
+      var preloadedRest = false;
+
+      function syncClock() {
+        var v = videos[active];
+        if (v && v.duration) clock = v.currentTime;
       }
-      function fill(entries) {
-        viewer.querySelectorAll('img').forEach(function (img) {
-          if (img.src.indexOf('blob:') === 0) URL.revokeObjectURL(img.src);
+
+      function updateEmpty() {
+        viewer.classList.toggle(
+          'lf-empty',
+          !videos[active] && !viewer.classList.contains('is-loading'));
+      }
+
+      // The hero flips between a handful of small clips; fetching the rest
+      // once the first one plays makes the arrows instant.
+      function preloadRest() {
+        if (!opts.preloadAll || preloadedRest) return;
+        preloadedRest = true;
+        Object.keys(videos).forEach(function (k) {
+          if (k !== active) {
+            videos[k].preload = 'auto';
+            videos[k].load();
+          }
         });
-        viewer.innerHTML = '';
-        entries.forEach(function (e) {
-          var img = document.createElement('img');
-          img.src = e.src;
-          img.dataset.key = e.key;
-          img.alt = e.alt;
-          viewer.appendChild(img);
+      }
+
+      function activate() {
+        var t = ++token;
+        var v = videos[active];
+        Object.keys(videos).forEach(function (k) {
+          videos[k].classList.toggle('is-visible', videos[k] === v);
+          if (videos[k] !== v) videos[k].pause();
         });
         viewer.classList.remove('is-loading');
-        apply();
-      }
-      return {
-        setActive: function (key) { active = key; apply(); },
-        load: function (specs) {
-          var t = ++token;
+        updateEmpty();
+        if (!v || !visible) return;
+        function go() {
+          if (t !== token) return;
+          viewer.classList.remove('is-loading');
+          if (v.duration) v.currentTime = clock % v.duration;
+          v.play().catch(function () {});
+          if (v.readyState >= 4) preloadRest();
+          else v.addEventListener('canplaythrough', preloadRest, { once: true });
+        }
+        if (v.readyState >= 1) {
+          go();
+        } else {
           viewer.classList.add('is-loading');
-          Promise.all(specs.map(function (w) {
-            return fetch(w.src)
-              .then(function (resp) {
-                if (!resp.ok) return null; // missing file: skip this layer
-                return resp.blob().then(function (blob) {
-                  return { key: w.key, alt: w.alt, src: URL.createObjectURL(blob) };
-                });
-              })
-              .catch(function () { return null; });
-          })).then(function (loaded) {
-            var got = loaded.filter(Boolean);
-            if (t !== token) {
-              got.forEach(function (l) { URL.revokeObjectURL(l.src); });
-              return;
-            }
-            // Nothing fetched at all (e.g. file://): fall back to direct sources.
-            fill(got.length ? got : specs);
+          updateEmpty();
+          v.addEventListener('loadedmetadata', go, { once: true });
+          v.load();
+        }
+      }
+
+      if ('IntersectionObserver' in window) {
+        new IntersectionObserver(function (entries) {
+          visible = entries[entries.length - 1].isIntersecting;
+          if (visible) {
+            activate();
+          } else {
+            syncClock();
+            var v = videos[active];
+            if (v) v.pause();
+          }
+        }, { rootMargin: '100px' }).observe(viewer);
+      } else {
+        visible = true;
+      }
+
+      return {
+        setActive: function (key) {
+          syncClock();
+          active = key;
+          activate();
+        },
+        load: function (specs) {
+          token++;
+          Object.keys(videos).forEach(function (k) { videos[k].pause(); });
+          viewer.innerHTML = '';
+          videos = {};
+          clock = 0;
+          preloadedRest = false;
+          specs.forEach(function (w) {
+            var v = document.createElement('video');
+            v.preload = 'none';
+            v.muted = true;
+            v.loop = true;
+            v.playsInline = true;
+            v.setAttribute('muted', '');       // iOS needs the attribute too
+            v.setAttribute('playsinline', '');
+            v.setAttribute('aria-label', w.alt);
+            v.src = w.src;
+            v.addEventListener('error', function () {
+              // Missing file: drop the layer so the empty state can show.
+              if (videos[w.key] !== v) return;
+              delete videos[w.key];
+              v.remove();
+              if (w.key === active) {
+                viewer.classList.remove('is-loading');
+                updateEmpty();
+              }
+            });
+            videos[w.key] = v;
+            viewer.appendChild(v);
           });
+          activate();
         }
       };
     }
@@ -904,7 +961,7 @@
     // Sequence explorer.
     (function () {
       if (!document.getElementById('lf-viewer')) return;
-      var GIF_DIR = './static/dataset_gifs/';
+      var VID_DIR = './static/dataset_gifs/';
       var SEQUENCES = [
         'bleach0',
         'bleach_hard_00_03_chaitanya',
@@ -920,7 +977,7 @@
         { key: 'cube', label: 'Cube' }
       ];
       var state = { geo: 'objects', seq: 0, r: '0.0', mod: 'rgb' };
-      var stack = gifStack('lf-viewer');
+      var stack = videoStack('lf-viewer');
       var seqName = document.getElementById('lf-seq-name');
       var seqCount = document.getElementById('lf-seq-count');
       var note = document.getElementById('lf-note');
@@ -948,7 +1005,7 @@
             MODALITIES.forEach(function (mod) {
               specs.push({
                 key: geo.key + '|' + r + '|' + mod.key,
-                src: GIF_DIR + geo.key + '_' + r + '_' + seq + '_' + mod.key + '.gif',
+                src: VID_DIR + geo.key + '_' + r + '_' + seq + '_' + mod.key + '.mp4',
                 alt: seq + ' (' + geo.label + ') at reflectivity ' + r + ', ' + mod.label
               });
             });
@@ -993,7 +1050,7 @@
     // Reference-view widget.
     (function () {
       if (!document.getElementById('rv-viewer')) return;
-      var GIF_DIR = './static/ref_views_gifs/';
+      var VID_DIR = './static/ref_views_gifs/';
       var OBJECTS = [
         { key: 'bleach_cleanser', label: 'Bleach cleanser' },
         { key: 'cracker_box', label: 'Cracker box' },
@@ -1002,7 +1059,7 @@
         { key: 'cube', label: 'Cube' }
       ];
       var state = { obj: 'mustard_bottle', r: '0.0', mod: 'rgb' };
-      var stack = gifStack('rv-viewer');
+      var stack = videoStack('rv-viewer');
       var rSlider = document.getElementById('rv-r');
       var rValue = document.getElementById('rv-r-value');
 
@@ -1016,7 +1073,7 @@
           MODALITIES.forEach(function (mod) {
             specs.push({
               key: r + '|' + mod.key,
-              src: GIF_DIR + state.obj + '_' + r + '_' + mod.key + '.gif',
+              src: VID_DIR + state.obj + '_' + r + '_' + mod.key + '.mp4',
               alt: state.obj + ' reference views at reflectivity ' + r + ', ' + mod.label
             });
           });
@@ -1047,7 +1104,7 @@
     // Per-method tracking results widget.
     (function () {
       if (!document.getElementById('bl-viewer')) return;
-      var GIF_DIR = './baseline_gifs/';
+      var VID_DIR = './baseline_gifs/';
       var SEQUENCES = [
         'bleach0',
         'bleach_hard_00_03_chaitanya',
@@ -1062,38 +1119,25 @@
         { key: 'objects', label: 'Objects' },
         { key: 'cube', label: 'Cube' }
       ];
+      // Every method runs on its deployment depth: the baselines on the
+      // simulated sensor depth (_synth), ours on the light field estimate (_lf).
       var METHODS = [
-        { key: 'ours', label: 'Ours' },
-        { key: 'fp', label: 'FoundationPose' },
-        { key: 'bsdf', label: 'BundleSDF' },
-        { key: 'loftr', label: 'LoFTR' },
-        { key: 'icp', label: 'ICP' },
-        { key: 'pnp', label: 'PnP' }
+        { key: 'ours', file: 'ours_lf', label: 'Ours' },
+        { key: 'fp', file: 'fp_synth', label: 'FoundationPose' },
+        { key: 'bsdf', file: 'bsdf_synth', label: 'BundleSDF' },
+        { key: 'loftr', file: 'loftr_synth', label: 'LoFTR' },
+        { key: 'icp', file: 'icp_synth', label: 'ICP' },
+        { key: 'pnp', file: 'pnp_synth', label: 'PnP' }
       ];
-      var DEPTHS = [
-        { key: 'dep', label: 'Estimated' },
-        { key: 'gt', label: 'Ground truth' }
-      ];
-      var state = { geo: 'objects', seq: 0, r: '0.0', method: 'ours', depth: 'dep' };
-      var stack = gifStack('bl-viewer');
+      var state = { geo: 'objects', seq: 0, r: '0.0', method: 'ours' };
+      var stack = videoStack('bl-viewer');
       var seqName = document.getElementById('bl-seq-name');
       var seqCount = document.getElementById('bl-seq-count');
       var rSlider = document.getElementById('bl-r');
       var rValue = document.getElementById('bl-r-value');
 
-      // The deployment-depth file token differs per method: the baselines run
-      // on the simulated sensor depth, ours on its light field estimate.
-      function depthToken(method, depth) {
-        if (depth === 'gt') return 'gt';
-        return method === 'ours' ? 'lf' : 'synth';
-      }
-
-      function available(method, depth) {
-        return !(method === 'loftr' && depth === 'gt');
-      }
-
       function activeKey() {
-        return state.geo + '|' + state.r + '|' + state.method + '|' + state.depth;
+        return state.geo + '|' + state.r + '|' + state.method;
       }
 
       function updateLabels() {
@@ -1102,34 +1146,17 @@
         rValue.textContent = 'r = ' + state.r;
       }
 
-      // LoFTR has no ground-truth-depth runs: grey the option out and fall
-      // back to deployment depth if it was selected.
-      function syncDepthButtons() {
-        var isLoftr = state.method === 'loftr';
-        document.querySelector('#bl-depth .button[data-key="gt"]').disabled = isLoftr;
-        if (isLoftr && state.depth === 'gt') {
-          state.depth = 'dep';
-          document.querySelectorAll('#bl-depth .button').forEach(function (b) {
-            b.classList.toggle('is-selected', b.dataset.key === state.depth);
-          });
-        }
-      }
-
       function rebuildStack() {
         var seq = SEQUENCES[state.seq];
         var specs = [];
         GEOMETRIES.forEach(function (geo) {
           REFLECTIVITIES.forEach(function (r) {
             METHODS.forEach(function (method) {
-              DEPTHS.forEach(function (depth) {
-                if (!available(method.key, depth.key)) return;
-                specs.push({
-                  key: geo.key + '|' + r + '|' + method.key + '|' + depth.key,
-                  src: GIF_DIR + geo.key + '_' + r + '_' + seq + '_' + method.key
-                    + '_' + depthToken(method.key, depth.key) + '.gif',
-                  alt: method.label + ' on ' + seq + ' (' + geo.label + ') at reflectivity '
-                    + r + ', ' + depth.label + ' depth'
-                });
+              specs.push({
+                key: geo.key + '|' + r + '|' + method.key,
+                src: VID_DIR + geo.key + '_' + r + '_' + seq + '_' + method.file + '.mp4',
+                alt: method.label + ' on ' + seq + ' (' + geo.label
+                  + ') at reflectivity ' + r
               });
             });
           });
@@ -1141,11 +1168,6 @@
 
       makeButtons('bl-method', METHODS, state.method, function (key) {
         state.method = key;
-        syncDepthButtons();
-        stack.setActive(activeKey());
-      });
-      makeButtons('bl-depth', DEPTHS, state.depth, function (key) {
-        state.depth = key;
         stack.setActive(activeKey());
       });
       makeButtons('bl-geo', GEOMETRIES, state.geo, function (key) {
@@ -1169,14 +1191,13 @@
       });
 
       rSlider.value = REFLECTIVITIES.indexOf(state.r);
-      syncDepthButtons();
       rebuildStack();
     })();
 
     // Ablation widget.
     (function () {
       if (!document.getElementById('ab-viewer')) return;
-      var GIF_DIR = './ablation_gifs/';
+      var VID_DIR = './ablation_gifs/';
       var SEQUENCES = [
         'bleach0',
         'bleach_hard_00_03_chaitanya',
@@ -1201,7 +1222,7 @@
         { key: 'synth_depth_synth', label: 'Sensor depth' }
       ];
       var state = { geo: 'objects', seq: 0, r: '0.0', mode: 'full_gt_mask_lf' };
-      var stack = gifStack('ab-viewer');
+      var stack = videoStack('ab-viewer');
       var seqName = document.getElementById('ab-seq-name');
       var seqCount = document.getElementById('ab-seq-count');
       var rSlider = document.getElementById('ab-r');
@@ -1225,7 +1246,7 @@
             MODES.forEach(function (mode) {
               specs.push({
                 key: geo.key + '|' + r + '|' + mode.key,
-                src: GIF_DIR + geo.key + '_' + r + '_' + seq + '_' + mode.key + '.gif',
+                src: VID_DIR + geo.key + '_' + r + '_' + seq + '_' + mode.key + '.mp4',
                 alt: mode.label + ' variant on ' + seq + ' (' + geo.label
                   + ') at reflectivity ' + r
               });
@@ -1266,11 +1287,11 @@
     })();
 
     // Hero widget: the fully reflective sugar box, one method at a time.
-    // A single 6-layer stack is loaded once, so the arrows swap methods
-    // mid-playback without ever restarting the clip.
+    // The remaining methods prefetch once the first clip plays, so the
+    // arrows swap methods mid-playback without a hitch.
     (function () {
       if (!document.getElementById('hero-viewer')) return;
-      var GIF_DIR = './baseline_gifs/';
+      var VID_DIR = './baseline_gifs/';
       var METHODS = [
         { file: 'ours_lf', label: 'Ours' },
         { file: 'fp_synth', label: 'FoundationPose' },
@@ -1280,7 +1301,7 @@
         { file: 'pnp_synth', label: 'PnP' }
       ];
       var current = 0;
-      var stack = gifStack('hero-viewer');
+      var stack = videoStack('hero-viewer', { preloadAll: true });
       var methodName = document.getElementById('hero-method');
       var methodCount = document.getElementById('hero-count');
 
@@ -1302,7 +1323,7 @@
       stack.load(METHODS.map(function (m) {
         return {
           key: m.file,
-          src: GIF_DIR + 'objects_1.0_sugar_box1_' + m.file + '.gif',
+          src: VID_DIR + 'objects_1.0_sugar_box1_' + m.file + '.mp4',
           alt: m.label + ' tracking the fully reflective sugar box'
         };
       }));
