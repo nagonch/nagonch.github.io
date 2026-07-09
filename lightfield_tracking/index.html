@@ -820,12 +820,16 @@
   });
 
   // Interactive clip explorers. Each widget stacks one <video> element per
-  // combination, all created with preload="none" so only the active clip is
-  // ever downloaded. Control toggles raise a layer and carry the playhead
-  // over, so the clip keeps playing from the same moment instead of
-  // restarting. Only actions that change the underlying clip set (sequence
-  // arrows, object picker) rebuild a stack and restart from frame 0. Stacks
-  // stay dormant until scrolled into view and pause when scrolled away.
+  // combination, all created with preload="none" so nothing downloads up
+  // front. A control toggle freezes the frame on screen, brings the incoming
+  // clip to readiness behind it (fetch, seek to the shared playhead, decode),
+  // and only then swaps layers — the incoming clip's stale first frame never
+  // flashes, and playback carries on from the same moment. Once the active
+  // clip plays smoothly, the clips one control-click away are prefetched so
+  // most switches don't wait on the network. Only actions that change the
+  // underlying clip set (sequence arrows, object picker) rebuild a stack and
+  // restart from frame 0. Stacks stay dormant until scrolled into view and
+  // pause when scrolled away.
   document.addEventListener('DOMContentLoaded', function () {
     var REFLECTIVITIES = ['0.0', '0.5', '0.7', '1.0'];
     var MODALITIES = [
@@ -856,13 +860,14 @@
       var viewer = document.getElementById(viewerId);
       var videos = {};   // key -> <video>, removed again if its file is missing
       var active = '';
+      var shown = null;  // layer currently raised; lags `active` mid-swap
       var token = 0;     // invalidates stale async activations
       var clock = 0;     // shared playhead, carried across layer switches
       var visible = false;
-      var preloadedRest = false;
 
       function syncClock() {
-        var v = videos[active];
+        // The raised layer owns the playhead, even while a swap is in flight.
+        var v = shown || videos[active];
         if (v && v.duration) clock = v.currentTime;
       }
 
@@ -872,45 +877,91 @@
           !videos[active] && !viewer.classList.contains('is-loading'));
       }
 
-      // The hero flips between a handful of small clips; fetching the rest
-      // once the first one plays makes the arrows instant.
-      function preloadRest() {
-        if (!opts.preloadAll || preloadedRest) return;
-        preloadedRest = true;
-        Object.keys(videos).forEach(function (k) {
-          if (k !== active) {
-            videos[k].preload = 'auto';
-            videos[k].load();
-          }
-        });
-      }
-
-      function activate() {
-        var t = ++token;
-        var v = videos[active];
+      function raise(v) {
         Object.keys(videos).forEach(function (k) {
           videos[k].classList.toggle('is-visible', videos[k] === v);
           if (videos[k] !== v) videos[k].pause();
         });
-        viewer.classList.remove('is-loading');
-        updateEmpty();
-        if (!v || !visible) return;
-        function go() {
-          if (t !== token) return;
+        shown = v || null;
+      }
+
+      // Fetch the clips one control-click away (all of them with
+      // opts.preloadAll) once the active clip plays smoothly, so most
+      // switches never wait on the network. Clips are ~200 KB each.
+      function warmNeighbors(fromKey) {
+        if (navigator.connection && navigator.connection.saveData) return;
+        Object.keys(videos).forEach(function (k) {
+          if (k === fromKey || videos[k].preload === 'auto') return;
+          if (!opts.preloadAll) {
+            var a = fromKey.split('|');
+            var b = k.split('|');
+            var diff = 0;
+            for (var i = 0; i < a.length; i++) {
+              if (a[i] !== b[i]) diff++;
+            }
+            if (diff !== 1) return;
+          }
+          videos[k].preload = 'auto';
+          videos[k].load();
+        });
+      }
+
+      // A switch freezes whatever is on screen and readies the incoming clip
+      // behind it — fetched, seeked to the shared playhead, frame decoded —
+      // and only then swaps, so its stale first frame never flashes.
+      function activate() {
+        var t = ++token;
+        var v = videos[active];
+        if (!v || !visible) {
+          raise(v);
           viewer.classList.remove('is-loading');
-          if (v.duration) v.currentTime = clock % v.duration;
-          v.play().catch(function () {});
-          if (v.readyState >= 4) preloadRest();
-          else v.addEventListener('canplaythrough', preloadRest, { once: true });
-        }
-        if (v.readyState >= 1) {
-          go();
-        } else {
-          viewer.classList.add('is-loading');
           updateEmpty();
-          v.addEventListener('loadedmetadata', go, { once: true });
-          v.load();
+          return;
         }
+        Object.keys(videos).forEach(function (k) {
+          if (videos[k] !== v) videos[k].pause();
+        });
+        if (v.preload !== 'auto') v.preload = 'auto';
+        v.play().catch(function () {});   // also kicks off the fetch
+        var sought = false;
+        var start = null;
+
+        function settle() {
+          var ready = v.readyState >= 2;
+          viewer.classList.toggle('is-loading', !ready);
+          if (!ready) {
+            v.addEventListener('canplay', function () {
+              if (videos[active] === v) viewer.classList.remove('is-loading');
+            }, { once: true });
+          }
+          raise(v);
+          updateEmpty();
+          v.play().catch(function () {});
+          if (v.readyState >= 4) warmNeighbors(active);
+          else v.addEventListener('canplaythrough', function () {
+            if (videos[active] === v) warmNeighbors(active);
+          }, { once: true });
+        }
+
+        function step(now) {
+          if (t !== token || videos[active] !== v) return;
+          if (start === null) start = now;
+          if (!sought && v.readyState >= 1) {
+            var d = v.duration;
+            var target = (d && isFinite(d)) ? clock % d : 0;
+            if (Math.abs(v.currentTime - target) > 0.05) v.currentTime = target;
+            sought = true;
+          }
+          // Swap once the frame at the playhead is decoded; after 3 s give
+          // up waiting and swap anyway rather than appear stuck.
+          if ((sought && v.readyState >= 2 && !v.seeking) || now - start > 3000) {
+            settle();
+            return;
+          }
+          if (now - start > 150) viewer.classList.add('is-loading');
+          requestAnimationFrame(step);
+        }
+        requestAnimationFrame(step);
       }
 
       if ('IntersectionObserver' in window) {
@@ -920,8 +971,9 @@
             activate();
           } else {
             syncClock();
-            var v = videos[active];
-            if (v) v.pause();
+            token++;   // abandon any in-flight swap
+            viewer.classList.remove('is-loading');
+            Object.keys(videos).forEach(function (k) { videos[k].pause(); });
           }
         }, { rootMargin: '100px' }).observe(viewer);
       } else {
@@ -939,8 +991,8 @@
           Object.keys(videos).forEach(function (k) { videos[k].pause(); });
           viewer.innerHTML = '';
           videos = {};
+          shown = null;
           clock = 0;
-          preloadedRest = false;
           specs.forEach(function (w) {
             var v = document.createElement('video');
             v.preload = 'none';
