@@ -65,6 +65,35 @@ body.presenting > section.pres-show > .hero-body {
   margin-bottom: auto !important;
 }
 
+/* Bullet mode: per-slide summary panel that stands in for the prose. */
+#pres-bullets {
+  max-width: 880px;
+  margin: 0.75rem auto 1.25rem;
+  text-align: left;
+}
+#pres-bullets ul {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+#pres-bullets li {
+  position: relative;
+  padding-left: 1.5rem;
+  margin-bottom: 0.65rem;
+  font-size: 1.25rem;
+  line-height: 1.45;
+  color: #363636;
+}
+#pres-bullets li::before {
+  content: '\25B8';
+  position: absolute;
+  left: 0.15rem;
+  color: #b0b0b0;
+}
+#pres-controls #pres-bullets-toggle.is-active {
+  background: rgba(255, 255, 255, 0.28);
+}
+
 /* Controls (bottom-right cluster). */
 #pres-controls {
   position: fixed;

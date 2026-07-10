@@ -16,8 +16,85 @@ document.addEventListener('DOMContentLoaded', function () {
 
   var current = 0;
   var presenting = false;
+  var bulletMode = false;
   var savedScroll = 0;
   var zoomable = (typeof CSS !== 'undefined') && CSS.supports && CSS.supports('zoom', '0.5');
+
+  // Bullet mode: per-slide summaries shown in place of the page prose.
+  // Keyed by data-pres id; slides without an entry keep their prose.
+  var BULLETS = {
+    teaser: [
+      'Mirror-like objects defeat appearance-based trackers — the reflections move, and the trackers follow them',
+      'Our idea: turn the reflections themselves into a pose cue',
+      'Each light field frame → geometry + diffuse albedo + the environment map it reflects',
+      'Pose refined by relighting the object and descending the photometric residual',
+      'Yellow outline = estimated pose — flip through the methods, baselines drift, ours stays locked on'
+    ],
+    abstract: [
+      'Existing trackers assume stable appearance — breaks on reflective surfaces that mirror the environment',
+      'Light field tracker, no pre-captured object model: depth robust to reflections → point cloud + normals',
+      'View-dependent appearance split into diffuse albedo + environment map = relightable surface light field',
+      'Track by relighting under the recovered map and optimizing pose on the photometric loss',
+      'New multi-reflectivity dataset; only method that holds accuracy on fully reflective objects'
+    ],
+    signal: [
+      'Classical tracking: a moving point is identified by its color — true only for matte (Lambertian) surfaces',
+      'A reflective point, moved and re-illuminated, changes its angular color distribution',
+      'Flatland toy: monocular color → shallow dip; raw EPIs → ignore re-illumination',
+      'Only EPIs relit under the environment map drive the loss to zero at the true translation',
+      'The reflection itself carries the motion'
+    ],
+    method: [
+      'Per frame: segment → reflection-robust depth → points + normals; every point observed from all subviews',
+      'Dichromatic model fit splits appearance: per-point diffuse albedo + one shared environment map',
+      'Coarse alignment: feature match on the diffuse colors — reflections removed',
+      'Refine: transform → relight under the accumulated map → render → descend the photometric residual',
+      'Moving object mirrors new parts of the scene → map fills in → signal sharpens over the sequence'
+    ],
+    dataset: [
+      'YCBInEOAT re-rendered as light fields — baseline-compatible, reflectivity controllable',
+      '8 sequences, 4 YCB objects, 2 geometry variants (original mesh + cube isolating reflectance from shape)',
+      'Per frame: 5 × 5 grid of 640 × 480 subviews at 5 mm baseline + masks, GT depth, 6D pose, calibration',
+      'Four reflectivity levels r ∈ {0.0, 0.5, 0.7, 1.0} — geometry, lighting, pose identical across levels',
+      'Paired simulated RGB-D sensor depth (active stereo) — collapses on shiny surfaces'
+    ],
+    explorer: [
+      'Every sequence at 4 reflectivity levels × 2 geometries, in RGB and simulated sensor depth',
+      'Watch the sensor depth collapse into holes and outliers as r grows',
+      'Cube variant: same trajectory, reflectance isolated from shape'
+    ],
+    refviews: [
+      'Calibrated reference views for every object — FoundationPose-compatible',
+      'All reflectivity levels, both depth modes, ground truth masks'
+    ],
+    results: [
+      'Every method: all 8 sequences × all 4 reflectivity levels',
+      'Baselines: central subview + simulated sensor depth; ours: full light field + its own depth estimate',
+      'Diffuse surfaces: trail only FoundationPose and BundleSDF — which rely on pre-captured models',
+      'Full reflectivity: best on every metric, largest gain in rotation'
+    ],
+    plot: [
+      'Tracking accuracy vs. reflectivity r, averaged over the 8 sequences',
+      'Ours (red) stays flat on the objects — every baseline falls off with reflectivity',
+      'Planar cube: severely underconstrained, advantage does not hold'
+    ],
+    representation: [
+      'Recovered in a single feed-forward pass from one light field capture',
+      'Columns: recovered geometry, diffuse–environment decomposition, relit render',
+      'Estimated depth, r = 0.7'
+    ],
+    ablations: [
+      'Remove one component at a time; differences clearest at high reflectivity',
+      'Predicted masks ≈ ground truth masks',
+      'No refinement / no separation → accuracy degrades on reflective objects',
+      'Sensor depth in place of light field depth — the most damaging change'
+    ],
+    supp: [
+      'Environment map fills in as motion exposes new reflection directions → approaches the GT panorama',
+      'Reflection separation: clean under GT depth; normal noise blurs the map, leaks reflections into diffuse',
+      'With clean depth the baselines barely degrade → their collapse is depth corruption, not appearance'
+    ]
+  };
 
   // --- chrome -------------------------------------------------------------
   var launch = document.createElement('button');
@@ -32,8 +109,12 @@ document.addEventListener('DOMContentLoaded', function () {
     '<button id="pres-prev" aria-label="Previous slide" title="Previous (←)">&#10094;</button>' +
     '<span id="pres-counter"></span>' +
     '<button id="pres-next" aria-label="Next slide" title="Next (→)">&#10095;</button>' +
+    '<button id="pres-bullets-toggle" aria-label="Toggle bullet summaries" title="Bullet summaries (B)">&#8801;</button>' +
     '<button id="pres-exit" aria-label="Exit presentation" title="Exit (Esc)">&#10005;</button>';
   document.body.appendChild(controls);
+
+  var bulletPanel = document.createElement('div');
+  bulletPanel.id = 'pres-bullets';
 
   // --- reveal machinery ---------------------------------------------------
   function clearReveal() {
@@ -121,13 +202,45 @@ document.addEventListener('DOMContentLoaded', function () {
     });
   }
 
+  // Swap the slide's prose for its bullet summary. Prose elements get the
+  // (per-show, self-cleaning) pres-hide class; the panel is inserted where
+  // the first prose block sat, so it inherits the page layout.
+  function applyBullets() {
+    bulletPanel.remove();
+    var items = bulletMode && BULLETS[order[current]];
+    if (!items) return;
+    bulletPanel.innerHTML = '<ul>' + items.map(function (b) {
+      return '<li>' + b + '</li>';
+    }).join('') + '</ul>';
+    var sect = activeSection();
+    if (!sect) return;
+    var prose = [];
+    groups[order[current]].forEach(function (el) {
+      if (el.matches('.content, h2.subtitle, .figure-caption')) prose.push(el);
+      prose = prose.concat(Array.prototype.slice.call(
+        el.querySelectorAll('.content, h2.subtitle, .figure-caption')));
+    });
+    prose.forEach(function (el) { el.classList.add('pres-hide'); });
+    if (prose.length) {
+      prose[0].parentElement.insertBefore(bulletPanel, prose[0]);
+    } else {
+      var h2 = sect.querySelector('h2.title');
+      if (h2) h2.parentElement.insertBefore(bulletPanel, h2.nextSibling);
+      else sect.insertBefore(bulletPanel, sect.firstChild);
+    }
+  }
+
   function show(i) {
     current = (i + order.length) % order.length;
     clearReveal();
     groups[order[current]].forEach(reveal);
     applyHides();
+    applyBullets();
     document.getElementById('pres-counter').textContent = (current + 1) + ' / ' + order.length;
-    if (presenting) history.replaceState(null, '', '#present-' + (current + 1));
+    document.getElementById('pres-bullets-toggle').classList.toggle('is-active', bulletMode);
+    if (presenting) {
+      history.replaceState(null, '', '#present-' + (current + 1) + (bulletMode ? 'b' : ''));
+    }
     scheduleFit();
     watchMedia();
   }
@@ -160,6 +273,7 @@ document.addEventListener('DOMContentLoaded', function () {
     if (!presenting) return;
     presenting = false;
     document.body.classList.remove('presenting');
+    bulletPanel.remove();
     clearReveal();
     if (document.fullscreenElement && document.exitFullscreen) {
       document.exitFullscreen().catch(function () {});
@@ -173,6 +287,11 @@ document.addEventListener('DOMContentLoaded', function () {
   document.getElementById('pres-prev').addEventListener('click', function () { show(current - 1); });
   document.getElementById('pres-next').addEventListener('click', function () { show(current + 1); });
   document.getElementById('pres-exit').addEventListener('click', exit);
+  document.getElementById('pres-bullets-toggle').addEventListener('click', function () {
+    bulletMode = !bulletMode;
+    this.blur();
+    show(current);
+  });
 
   document.addEventListener('fullscreenchange', function () {
     if (!document.fullscreenElement && presenting) exit();
@@ -203,14 +322,22 @@ document.addEventListener('DOMContentLoaded', function () {
         show(0); e.preventDefault(); break;
       case 'End':
         show(order.length - 1); e.preventDefault(); break;
+      case 'b':
+      case 'B':
+        bulletMode = !bulletMode;
+        show(current);
+        e.preventDefault();
+        break;
       case 'Escape':
         exit(); break;
     }
   });
 
-  // Deep link: #present opens presentation mode, #present-7 opens slide 7.
-  var hash = location.hash.match(/^#present(?:-(\d+))?$/);
+  // Deep link: #present opens presentation mode, #present-7 opens slide 7,
+  // a trailing "b" (#present-7b) opens it in bullet mode.
+  var hash = location.hash.match(/^#present(?:-(\d+))?(b)?$/);
   if (hash) {
+    bulletMode = !!hash[2];
     enter();
     if (hash[1]) show(Math.min(order.length, Math.max(1, parseInt(hash[1], 10))) - 1);
   }
