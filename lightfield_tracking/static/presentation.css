@@ -1,0 +1,105 @@
+/* Presentation mode: fullscreen, one slide (page fragment) at a time.
+   The page DOM is never moved — slides are revealed in place, so every
+   widget keeps its listeners and state. */
+
+#pres-launch {
+  position: fixed;
+  right: 1.1rem;
+  bottom: 1.1rem;
+  z-index: 50;
+  border: none;
+  border-radius: 999px;
+  background: #363636;
+  color: #ffffff;
+  font-size: 0.85rem;
+  padding: 0.55rem 1.1rem;
+  cursor: pointer;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.25);
+  opacity: 0.85;
+}
+#pres-launch:hover {
+  opacity: 1;
+}
+
+/* While presenting: freeze the page, hide everything off the active path. */
+body.presenting {
+  overflow: hidden;
+  height: 100vh;
+}
+body.presenting > *:not(.pres-path):not(.pres-show):not(#pres-controls) {
+  display: none !important;
+}
+body.presenting .pres-hide {
+  display: none !important;
+}
+body.presenting #pres-launch {
+  display: none;
+}
+
+/* The active top-level section becomes the slide surface. */
+body.presenting > section.pres-path,
+body.presenting > section.pres-show {
+  display: flex !important;
+  flex-direction: column;
+  justify-content: center;
+  height: 100vh;
+  box-sizing: border-box;
+  overflow: hidden;
+  padding: 2rem 1.5rem;
+  background: #ffffff;
+  animation: pres-fade 0.3s ease;
+}
+@keyframes pres-fade {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+
+/* Center the slide content vertically. Auto margins beat Bulma's
+   flex-grow on .hero-body and work regardless of content height. */
+body.presenting > section.pres-path > .container,
+body.presenting > section.pres-path > .hero-body,
+body.presenting > section.pres-show > .container,
+body.presenting > section.pres-show > .hero-body {
+  flex-grow: 0 !important;
+  margin-top: auto !important;
+  margin-bottom: auto !important;
+}
+
+/* Controls (bottom-right cluster). */
+#pres-controls {
+  position: fixed;
+  right: 1rem;
+  bottom: 1rem;
+  z-index: 60;
+  display: none;
+  align-items: center;
+  gap: 0.4rem;
+  background: rgba(54, 54, 54, 0.92);
+  border-radius: 999px;
+  padding: 0.3rem 0.6rem;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.3);
+}
+body.presenting #pres-controls {
+  display: flex;
+}
+#pres-controls button {
+  border: none;
+  background: transparent;
+  color: #ffffff;
+  font-size: 1rem;
+  width: 2rem;
+  height: 2rem;
+  border-radius: 50%;
+  cursor: pointer;
+  line-height: 1;
+}
+#pres-controls button:hover {
+  background: rgba(255, 255, 255, 0.18);
+}
+#pres-counter {
+  color: #ffffff;
+  font-size: 0.85rem;
+  min-width: 3.2rem;
+  text-align: center;
+  font-variant-numeric: tabular-nums;
+}
