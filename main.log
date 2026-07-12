@@ -1,0 +1,13 @@
+This is TeX, Version 3.141592653 (TeX Live 2026) (preloaded format=tex 2026.6.19)  13 JUL 2026 09:04
+**cv
+(./cv/main.tex
+! Undefined control sequence.
+l.1 \documentclass
+                  [11pt,a4paper]{article}
+? 
+! Emergency stop.
+l.1 
+    
+End of file on the terminal!
+
+No pages of output.
