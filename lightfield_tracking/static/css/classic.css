@@ -405,12 +405,17 @@ a:visited {
   /* 4:3 viewer + controls + heading must fit: shrink on short windows */
   max-width: min(760px, calc((100vh - 410px) * 4 / 3));
 }
+/* The title slide also carries the title block, so its clip gets less. */
+.slide .hero-row .lf-explorer {
+  max-width: min(760px, calc((100vh - 530px) * 4 / 3));
+}
 .slide .paper-figure {
   max-height: calc(100vh - 360px);
   width: auto;
 }
 @media screen and (max-width: 768px) {
-  .slide .lf-explorer {
+  .slide .lf-explorer,
+  .slide .hero-row .lf-explorer {
     max-width: 760px;
   }
   .slide .paper-figure {
@@ -418,37 +423,58 @@ a:visited {
   }
 }
 
-/* ── footer: logos + acknowledgment ───────────────────────────────────── */
+/* ── logos under the acknowledgments ──────────────────────────────── */
 
-.site-footer {
-  background: none;
-  border-top: 2px solid var(--rule);
-  padding: 2rem 0 2.5rem;
-  scroll-snap-align: end;
-}
-.site-footer .logos {
+.logos {
   display: flex;
   flex-wrap: wrap;
   justify-content: center;
   align-items: center;
-  gap: 1.5rem 3.5rem;
-  margin-bottom: 1.25rem;
+  gap: 1.5rem 5rem;
+  margin-top: 2.5rem;
 }
-.site-footer .logos img {
+.logos img {
   display: block;
-  height: 72px;
+  height: 56px;
   width: auto;
   max-width: 100%;
 }
-.site-footer .acknowledgment {
-  max-width: 560px;
-  margin: 0 auto;
-  font-size: 13px;
-  color: var(--muted);
-  text-align: center !important;
-}
 @media screen and (max-width: 768px) {
-  .site-footer .logos img {
-    height: 56px;
+  .logos {
+    gap: 1.25rem 2.5rem;
   }
+  .logos img {
+    height: 44px;
+  }
+}
+
+/* ── Nerfies link buttons: dark rounded pills, not the native look ───── */
+
+.publication-links {
+  margin-top: 1rem;
+}
+.publication-links .link-block {
+  display: inline-block;
+  margin: 0.25rem 0.2rem;
+}
+.publication-links .button.is-dark {
+  height: 2.5em;
+  padding: 0 1.1em;
+  font-size: 1rem;
+  color: #ffffff !important;
+  background: #363636;
+  border: 0;
+  border-radius: 9999px !important;
+  text-decoration: none;
+}
+.publication-links .button.is-dark:hover {
+  background: #2f2f2f;
+  color: #ffffff !important;
+}
+.publication-links .button .icon {
+  margin-right: 0.35em;
+}
+.publication-links .button .icon svg {
+  width: 1.1em;
+  height: 1.1em;
 }
