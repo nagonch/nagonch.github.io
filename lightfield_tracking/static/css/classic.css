@@ -55,7 +55,6 @@ table {
 }
 
 /* Plain left-aligned text. */
-.has-text-centered,
 .has-text-justified,
 .has-text-justified p,
 .subtitle,
@@ -75,9 +74,6 @@ table {
 }
 .section:first-of-type {
   border-top: 0;
-}
-.title-note {
-  margin-bottom: 1.5rem;
 }
 
 /* ── slides: one viewport per section, snapping like a deck ───────────── */
@@ -157,15 +153,48 @@ html {
   color: var(--ink);
 }
 
-h1.publication-title {
-  font-size: 1.9rem;
-  font-weight: bold;
-  line-height: 1.25;
-  margin-bottom: 0.75rem !important;
+/* Title block keeps the Nerfies layout: centred, big title, is-size-5
+   authors with blue links that underline on hover. */
+.title-block {
+  text-align: center;
+  margin-bottom: 1.75rem;
 }
-.publication-authors {
-  font-size: 1rem !important;
+.title-block h1.publication-title {
+  font-size: 2.4rem;
+  font-weight: bold;
+  line-height: 1.2;
+  margin-bottom: 1rem !important;
+}
+.title-block .publication-authors {
   color: var(--ink);
+  line-height: 1.5;
+}
+.title-block .publication-authors.is-size-5 {
+  font-size: 1.25rem !important;
+}
+.title-block .publication-authors.is-size-6 {
+  font-size: 1rem !important;
+  margin-top: 0.25rem;
+}
+.title-block .publication-authors a {
+  color: hsl(204, 86%, 53%) !important;   /* Nerfies blue, as index.css */
+  text-decoration: none;
+}
+.title-block .publication-authors a:hover {
+  text-decoration: underline;
+}
+.title-block .publication-venue {
+  width: auto;   /* index.css sets fit-content, which defeats centring */
+  font-size: 1.1rem;
+  font-weight: bold;
+  color: var(--ink);
+  margin-top: -0.25rem;
+  margin-bottom: 0.75rem;
+}
+@media screen and (max-width: 768px) {
+  .title-block h1.publication-title {
+    font-size: 1.7rem;
+  }
 }
 
 h2.title.is-3 {
@@ -386,5 +415,40 @@ a:visited {
   }
   .slide .paper-figure {
     max-height: none;
+  }
+}
+
+/* ── footer: logos + acknowledgment ───────────────────────────────────── */
+
+.site-footer {
+  background: none;
+  border-top: 2px solid var(--rule);
+  padding: 2rem 0 2.5rem;
+  scroll-snap-align: end;
+}
+.site-footer .logos {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  align-items: center;
+  gap: 1.5rem 3.5rem;
+  margin-bottom: 1.25rem;
+}
+.site-footer .logos img {
+  display: block;
+  height: 72px;
+  width: auto;
+  max-width: 100%;
+}
+.site-footer .acknowledgment {
+  max-width: 560px;
+  margin: 0 auto;
+  font-size: 13px;
+  color: var(--muted);
+  text-align: center !important;
+}
+@media screen and (max-width: 768px) {
+  .site-footer .logos img {
+    height: 56px;
   }
 }
