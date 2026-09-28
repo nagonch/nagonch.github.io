@@ -1,0 +1,390 @@
+/* Bare theme: looks like hand-written HTML. Verdana everywhere, browser-blue
+   links, grey rules between sections, native-looking buttons, no boxes, no
+   colour fills. Loaded last so it overrides Bulma, index.css and the page's
+   inline widget styles at equal specificity. */
+
+:root {
+  --ink: #000000;
+  --muted: #444444;
+  --rule: #dddddd;
+  --font: Verdana, 'DejaVu Sans', Geneva, Tahoma, sans-serif;
+}
+
+html {
+  background: #ffffff;
+}
+
+body {
+  max-width: 980px;
+  margin: 0 auto;
+  padding: 24px 40px 40px;
+  background: #ffffff;
+  color: var(--ink);
+  font-family: var(--font);
+  font-size: 14px;
+  line-height: 1.6;
+}
+
+@media screen and (max-width: 768px) {
+  body {
+    padding: 12px 16px 32px;
+    font-size: 14px;
+  }
+}
+
+/* Every font on the page is the one sans. */
+body,
+.content,
+.content p,
+.title,
+.subtitle,
+.teaser,
+.publication-title,
+.publication-authors,
+.figure-caption,
+.button,
+.tag,
+.lf-control-label,
+.lf-seq-name,
+.lf-seq-count,
+.lf-note,
+.lf-slider-ticks,
+.hero-method-name,
+table {
+  font-family: var(--font) !important;
+}
+
+/* Plain left-aligned text. */
+.has-text-centered,
+.has-text-justified,
+.has-text-justified p,
+.subtitle,
+.figure-caption {
+  text-align: left !important;
+}
+
+/* ── layout: strip Bulma's padding, rules between sections ────────────── */
+
+.section,
+.hero-body {
+  padding: 0;
+}
+.section {
+  border-top: 2px solid var(--rule);
+  padding: 1.5rem 0;
+}
+.section:first-of-type {
+  border-top: 0;
+}
+.title-note {
+  margin-bottom: 1.5rem;
+}
+
+/* ── slides: one viewport per section, snapping like a deck ───────────── */
+
+html {
+  scroll-snap-type: y mandatory;
+  scroll-behavior: smooth;
+}
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
+}
+/* A slide is at least one viewport tall with its content vertically
+   centred; a taller one simply grows and scrolls through normally. */
+.slide {
+  scroll-snap-align: start;
+  padding: 1rem 0;
+  min-height: 100vh;
+  box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+}
+/* Bulma gives .container flex-grow: 1, which would pin content to the top. */
+.slide > .container {
+  flex-grow: 0;
+}
+/* Phones: tall slides and snapping fight each other; plain scrolling. */
+@media screen and (max-width: 768px) {
+  html {
+    scroll-snap-type: none;
+  }
+  .slide {
+    min-height: 0;
+    display: block;
+  }
+}
+.container,
+.container.is-max-desktop {
+  max-width: none !important;
+  margin: 0;
+}
+.columns {
+  margin-left: 0;
+  margin-right: 0;
+}
+.column {
+  padding-left: 0;
+  padding-right: 0;
+}
+.column.is-four-fifths {
+  flex: none;
+  width: 100%;
+}
+/* Hero row: clip left, bullets right. Padding rather than gap, so the two
+   50% columns still fit the row. Bulma stacks the columns below 769px. */
+.hero-row > .column:first-child {
+  padding-right: 1.5rem !important;
+}
+.hero-row .content ul {
+  margin-top: 0;
+}
+@media screen and (max-width: 768px) {
+  .hero-row > .column:first-child {
+    padding-right: 0 !important;
+    margin-bottom: 1rem;
+  }
+}
+
+/* ── type ─────────────────────────────────────────────────────────────── */
+
+.title,
+.content,
+.content p,
+.subtitle {
+  color: var(--ink);
+}
+
+h1.publication-title {
+  font-size: 1.9rem;
+  font-weight: bold;
+  line-height: 1.25;
+  margin-bottom: 0.75rem !important;
+}
+.publication-authors {
+  font-size: 1rem !important;
+  color: var(--ink);
+}
+
+h2.title.is-3 {
+  font-size: 1.6rem;
+  font-weight: bold;
+  margin-bottom: 1rem !important;
+}
+h3.title.is-4,
+h3.title.is-5 {
+  font-size: 1.2rem;
+  font-weight: bold;
+  margin: 1.5rem 0 0.75rem !important;
+}
+.supp-heading {
+  justify-content: flex-start;
+}
+
+.subtitle {
+  font-size: 1rem !important;
+  line-height: 1.55;
+}
+
+.content p:not(:last-child) {
+  margin-bottom: 1em;
+}
+
+a,
+.content a {
+  color: #0000ee;
+  text-decoration: underline;
+}
+a:visited {
+  color: #551a8b;
+}
+
+[id] {
+  scroll-margin-top: 1rem;
+}
+
+/* ── figures and captions ─────────────────────────────────────────────── */
+
+.figure-caption {
+  max-width: none;
+  margin-left: 0;
+  font-size: 13px;
+  line-height: 1.5;
+  color: var(--muted);
+}
+.figure-caption b {
+  color: var(--ink);
+}
+
+.tag.is-light,
+.tag:not(body).is-light {
+  background: none !important;
+  border: 0;
+  padding: 0;
+  height: auto;
+  font-size: 13px;
+  color: var(--muted);
+}
+.tag.is-light::before { content: '('; }
+.tag.is-light::after { content: ')'; }
+
+/* ── interactive widgets: no panels, native-looking controls ──────────── */
+
+.lf-explorer,
+.lf-explorer-small,
+.supp-carousel {
+  background: none;
+  border: 0;
+  border-radius: 0;
+  padding: 0;
+  max-width: 760px;
+  margin: 0;
+}
+.supp-carousel {
+  padding: 0 3rem;
+}
+.lf-controls {
+  justify-content: flex-start;
+}
+.lf-seq-nav {
+  justify-content: flex-start;
+}
+.lf-seq-label {
+  text-align: left;
+  min-width: 14rem;
+}
+
+.lf-control-label {
+  font-size: 13px;
+  font-weight: normal;
+  text-transform: none;
+  color: var(--ink);
+  text-align: left;
+}
+.lf-control-label::after {
+  content: ':';
+}
+#lf-r-value,
+.lf-r-value {
+  color: var(--muted);
+}
+.lf-buttons {
+  justify-content: flex-start;
+}
+
+/* Look like default browser buttons. */
+.button,
+.lf-buttons .button,
+.lf-arrow,
+.gallery-nav {
+  height: auto;
+  padding: 1px 8px;
+  font-size: 13px;
+  color: #000000;
+  background: #efefef;
+  border: 1px solid #767676;
+  border-radius: 2px !important;
+  box-shadow: none;
+}
+.lf-buttons.has-addons .button {
+  margin-right: 4px;
+}
+.lf-buttons .button:hover,
+.lf-arrow:hover,
+.gallery-nav:hover {
+  background: #e5e5e5;
+  border-color: #4f4f4f;
+}
+.lf-buttons .button.is-selected,
+.lf-buttons .button.is-selected:hover {
+  background: #cfcfcf;
+  border-color: #4f4f4f;
+  color: #000000;
+  font-weight: bold;
+}
+.button:focus-visible,
+.lf-arrow:focus-visible,
+.gallery-nav:focus-visible,
+.gallery-dots button:focus-visible {
+  outline: 1px dotted #000000;
+  outline-offset: 2px;
+  box-shadow: none;
+}
+
+.lf-arrow,
+.gallery-nav {
+  width: auto;
+  height: auto;
+  padding: 1px 10px;
+}
+.hero-method-name {
+  font-weight: bold;
+}
+.lf-seq-name {
+  font-size: 1rem;
+}
+.lf-seq-count {
+  font-size: 12px;
+  color: var(--muted);
+}
+
+.lf-slider input[type="range"] {
+  accent-color: auto;
+}
+.lf-slider-ticks {
+  font-size: 12px;
+  color: var(--muted);
+}
+
+.lf-viewer {
+  border-radius: 0;
+  background: #eeeeee;
+}
+.lf-viewer.lf-empty::before {
+  background: #eeeeee;
+  font-size: 13px;
+}
+.lf-viewer.is-loading::after {
+  font-family: var(--font);
+  font-size: 12px;
+  border-radius: 0;
+  background: #ffffff;
+}
+.lf-note {
+  font-size: 13px;
+  text-align: left;
+}
+
+.gallery-dots {
+  text-align: left;
+}
+.gallery-dots button {
+  width: 8px;
+  height: 8px;
+  border-radius: 0;
+  background: #cccccc;
+}
+.gallery-dots button.is-active {
+  background: #000000;
+}
+
+/* ── fit each slide in one viewport ───────────────────────────────────── */
+
+.slide .lf-explorer {
+  /* 4:3 viewer + controls + heading must fit: shrink on short windows */
+  max-width: min(760px, calc((100vh - 410px) * 4 / 3));
+}
+.slide .paper-figure {
+  max-height: calc(100vh - 360px);
+  width: auto;
+}
+@media screen and (max-width: 768px) {
+  .slide .lf-explorer {
+    max-width: 760px;
+  }
+  .slide .paper-figure {
+    max-height: none;
+  }
+}
