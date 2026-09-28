@@ -183,6 +183,14 @@ html {
 .title-block .publication-authors a:hover {
   text-decoration: underline;
 }
+/* The favicon's axes glyph, set inline before the title like a letter. */
+.title-block .title-icon {
+  display: inline-block;
+  height: 1.1em;
+  width: auto;
+  margin-right: 0.3em;
+  vertical-align: -0.2em;
+}
 .title-block .publication-venue {
   width: auto;   /* index.css sets fit-content, which defeats centring */
   font-size: 1.1rem;

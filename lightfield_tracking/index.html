@@ -124,7 +124,7 @@
       color: #4a4a4a;
     }
   </style>
-  <link rel="stylesheet" href="./static/css/classic.css?v=2">
+  <link rel="stylesheet" href="./static/css/classic.css?v=4">
 </head>
 <body>
 
@@ -133,7 +133,7 @@
   <div class="container">
     <!-- Nerfies-style title block: centred title, linked authors, affiliation. -->
     <div class="title-block has-text-centered">
-      <h1 class="title is-1 publication-title">Reflection-Robust 6DoF Object Tracking with Light Fields</h1>
+      <h1 class="title is-1 publication-title"><img class="title-icon" src="./static/images/axis-favicon.svg" alt="">Reflection-Robust 6DoF Object Tracking with Light Fields</h1>
       <div class="publication-venue">ACCV 2026</div>
       <div class="is-size-5 publication-authors">
         <span class="author-block">
@@ -191,6 +191,26 @@
           </ul>
         </div>
       </div>
+    </div>
+  </div>
+</section>
+
+<section class="section slide">
+  <div class="container">
+    <h2 class="title is-3" id="signal">Reflections are a pose signal</h2>
+    <div class="content">
+      <ul>
+        <li>A moving reflective point changes color as it is re-illuminated, so plain color matching fails.</li>
+        <li>Monocular color gives only a shallow dip in the loss; raw light field EPIs ignore the re-illumination.</li>
+        <li>Relit under the environment map, the loss drops to zero at the true motion: the reflection carries the pose.</li>
+      </ul>
+    </div>
+    <div class="figure-block">
+      <video autoplay muted loop playsinline preload="metadata"
+             class="paper-figure" style="max-width: 860px;"
+             aria-label="Flatland toy example, animated: only relit EPIs drive the photometric loss to zero at the true translation.">
+        <source src="./static/toy_reflection_motion_anim.mp4" type="video/mp4">
+      </video>
     </div>
   </div>
 </section>
