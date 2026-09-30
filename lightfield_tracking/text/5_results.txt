@@ -2,6 +2,6 @@
 Results
 
 [body]
-Baselines get the central subview and the simulated sensor depth; ours gets
-the full light field. Ours is the only method stable across reflectivity.
-Yellow outline = estimated pose.
+Ours is the only method whose accuracy stays stable as reflectivity
+increases. At full reflectivity it is best on every metric, with the largest
+gain in rotation.

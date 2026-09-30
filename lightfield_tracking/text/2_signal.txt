@@ -2,9 +2,9 @@
 Reflections are a pose signal
 
 [body]
-- A moving reflective point changes color as it is re-illuminated, so plain
-  color matching fails.
-- Monocular color gives only a shallow dip in the loss; raw light field EPIs
-  ignore the re-illumination.
-- Relit under the environment map, the loss drops to zero at the true motion:
-  the reflection carries the pose.
+- A reflective surface patch moves and is re-illuminated by the
+environment. An array of cameras captures its light field before and after.
+- Correlating the epipolar plane images reveals its new position.
+- Since the point's angular color distribution changes, the
+photometric correlation loss is only fully minimized when the point is relit
+by the environment map.

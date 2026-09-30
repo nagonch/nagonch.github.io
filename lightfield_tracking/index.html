@@ -123,6 +123,31 @@
       font-size: 0.75rem;
       color: #4a4a4a;
     }
+    /* Citation markers: click to show the reference in a popover. */
+    .cite {
+      font: inherit;
+      color: #3273dc;
+      background: none;
+      border: 0;
+      padding: 0;
+      cursor: pointer;
+    }
+    .cite:hover {
+      text-decoration: underline;
+    }
+    .cite-pop {
+      position: absolute;
+      z-index: 20;
+      max-width: min(420px, calc(100vw - 32px));
+      padding: 0.6rem 0.8rem;
+      background: #ffffff;
+      border: 1px solid #dbdbdb;
+      border-radius: 4px;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.12);
+      font-size: 0.85rem;
+      line-height: 1.4;
+      color: #363636;
+    }
   </style>
   <link rel="stylesheet" href="./static/css/classic.css?v=4">
 </head>
@@ -176,17 +201,18 @@
           </div>
           <div class="lf-viewer" id="hero-viewer"></div>
         </div>
-        <p class="figure-caption"><!-- txt:title.caption:inline -->Fully reflective sugar box. Yellow outline = estimated pose. Flip through the methods.<!-- /txt --></p>
+        <p class="figure-caption"><!-- txt:title.caption:inline -->Flip through the methods to compare tracking quality.<!-- /txt --></p>
       </div>
       <div class="column is-half">
         <div class="content">
           <!-- txt:title.summary -->
           <ul>
-            <li>Reflective objects break appearance-based 6DoF trackers: their appearance changes as they mirror the environment.</li>
+            <li>In object tracking, the points between the frames are mainly identified based on their color.</li>
+            <li>Reflective objects break this assumption: their appearance changes as they move.</li>
             <li>We track from a light field instead, and use the reflections as a pose cue.</li>
-            <li>Each frame is decomposed into geometry, a diffuse albedo, and the environment map it reflects: a relightable surface light field.</li>
+            <li>We process the light field image of each frame into a depth map, surface normals map, albedo image, and the reflected environment map, resulting in relightable surface light field of the object.</li>
             <li>Pose is refined by relighting under the recovered environment map and minimizing the photometric residual.</li>
-            <li>New dataset: YCBInEOAT re-rendered as light fields at four reflectivity levels. Ours is the only method that holds its accuracy on fully reflective objects.</li>
+            <li>New dataset: YCBInEOAT<sup><button type="button" class="cite" data-ref="wen2020">[1]</button></sup> re-rendered as light fields at four reflectivity levels. Ours is the only method that holds its accuracy on fully reflective objects.</li>
           </ul>
           <!-- /txt -->
         </div>
@@ -201,9 +227,9 @@
     <div class="content">
       <!-- txt:signal.body -->
       <ul>
-        <li>A moving reflective point changes color as it is re-illuminated, so plain color matching fails.</li>
-        <li>Monocular color gives only a shallow dip in the loss; raw light field EPIs ignore the re-illumination.</li>
-        <li>Relit under the environment map, the loss drops to zero at the true motion: the reflection carries the pose.</li>
+        <li>A reflective surface patch moves and is re-illuminated by the environment. An array of cameras captures its light field before and after.</li>
+        <li>Correlating the epipolar plane images reveals its new position.</li>
+        <li>Since the point's angular color distribution changes, the photometric correlation loss is only fully minimized when the point is relit by the environment map.</li>
       </ul>
       <!-- /txt -->
     </div>
@@ -223,11 +249,12 @@
     <div class="content">
       <!-- txt:method.body -->
       <ul>
-        <li>Segment the object, estimate depth robustly against reflections, back-project to points and normals.</li>
-        <li>Every point is seen from all subviews. A dichromatic model splits its colors into a per-point diffuse albedo and one environment map shared by all points.</li>
-        <li>Coarse pose: feature matching on the diffuse colors, with the reflections removed.</li>
-        <li>Refinement: transform the source, relight it under the accumulated environment map, render, and descend the photometric residual.</li>
-        <li>A moving object mirrors new parts of the scene, so the environment map fills in and the signal sharpens over the sequence.</li>
+        <li>We first process our light field into a depth map and a surface normals map in a way that is robust to specular reflections.</li>
+        <li>We then use this geometry to decompose the object's appearance into a per-point diffuse albedo and an environment map of the surrounding illumination, shared by all points.</li>
+        <li>This results in a surface light field representing the frame. We align the object in two frames by aligning their surface light fields.</li>
+        <li>In practice, we first combine LoFTR<sup><button type="button" class="cite" data-ref="sun2021loftr">[2]</button></sup> feature matching on the albedos with colored ICP on the point clouds to find a coarse object transform.</li>
+        <li>We then refine the pose: we transform the source surface light field, relight it under the environment map recovered so far, render it, and minimize the photometric residual against the observed frame by gradient descent.</li>
+        <li>As the object moves, it reflects new parts of the scene, so the environment map fills in and the relighting signal sharpens over the sequence.</li>
       </ul>
       <!-- /txt -->
     </div>
@@ -244,7 +271,7 @@
     <h2 class="title is-3" id="dataset"><!-- txt:dataset.heading:inline -->Dataset<!-- /txt --></h2>
     <div class="content">
       <!-- txt:dataset.body -->
-      <p>We render objects from YCBInEOAT into light fields at multiple reflectivities. Play with the widget.</p>
+      <p>We render objects from YCBInEOAT<sup><button type="button" class="cite" data-ref="wen2020">[1]</button></sup> into light fields at multiple reflectivities. Play with the widget.</p>
       <ul>
         <li>8 sequences, 4 YCB objects, in two variants: the original mesh and a cube on the same trajectory.</li>
         <li>Per frame: 5&times;5 subviews of 640&times;480 at 5&nbsp;mm baseline, plus masks, ground truth depth, 6D pose and calibration.</li>
@@ -285,7 +312,7 @@
     <h2 class="title is-3" id="results"><!-- txt:results.heading:inline -->Results<!-- /txt --></h2>
     <div class="content">
       <!-- txt:results.body -->
-      <p>Baselines get the central subview and the simulated sensor depth; ours gets the full light field. Ours is the only method stable across reflectivity. Yellow outline = estimated pose.</p>
+      <p>Ours is the only method whose accuracy stays stable as reflectivity increases. At full reflectivity it is best on every metric, with the largest gain in rotation.</p>
       <!-- /txt -->
     </div>
 
@@ -328,7 +355,11 @@
     <h2 class="title is-3" id="captured"><!-- txt:captured.heading:inline -->Real captures<!-- /txt --></h2>
     <div class="content">
       <!-- txt:captured.body -->
-      <p>A mustard bottle on a robot arm, bare and foil-wrapped, captured with a 17-view light field camera at 10&nbsp;mm baseline. Same protocol as above.</p>
+      <ul>
+        <li>A mustard bottle on a UR5e robot arm, plain and then foil-wrapped, 46 frames each, captured with a 17-view EPIModule light field camera at 10&nbsp;mm baseline.</li>
+        <li>Ground truth comes from the robot kinematics via hand-eye calibration, refined per frame by aligning the object silhouette. Both sequences are released with the dataset.</li>
+        <li>Ours is best or tied on every metric on both sequences, and cuts BundleSDF<sup><button type="button" class="cite" data-ref="wen2023bundlesdf">[4]</button></sup>'s rotation error by roughly a third.</li>
+      </ul>
       <!-- /txt -->
     </div>
 
@@ -796,6 +827,58 @@
       stack.setActive(activeKey());
       stack.load(specs);
     })();
+  });
+
+  // Citation popovers: clicking a [n] marker shows the full reference just
+  // below it; clicking elsewhere or pressing Escape closes it.
+  document.addEventListener('DOMContentLoaded', function () {
+    var REFS = {
+      wen2020: 'B. Wen, C. Mitash, B. Ren, K. E. Bekris. se(3)-TrackNet: '
+        + 'Data-driven 6D pose tracking by calibrating image residuals in '
+        + 'synthetic domains. <i>IROS</i>, 2020, pp. 10367&ndash;10373.',
+      sun2021loftr: 'J. Sun, Z. Shen, Y. Wang, H. Bao, X. Zhou. LoFTR: '
+        + 'Detector-free local feature matching with transformers. '
+        + '<i>arXiv preprint arXiv:2104.00680</i>, 2021.',
+      wen2024foundationpose: 'B. Wen, W. Yang, J. Kautz, S. Birchfield. '
+        + 'FoundationPose: Unified 6D pose estimation and tracking of novel '
+        + 'objects. <i>CVPR</i>, 2024, pp. 17868&ndash;17879.',
+      wen2023bundlesdf: 'B. Wen, J. Tremblay, V. Blukis, S. Tyree, '
+        + 'T. M&uuml;ller, A. Evans, D. Fox, J. Kautz, S. Birchfield. '
+        + 'BundleSDF: Neural 6-DoF tracking and 3D reconstruction of unknown '
+        + 'objects. <i>CVPR</i>, 2023, pp. 606&ndash;617.'
+    };
+    var pop = document.createElement('div');
+    pop.className = 'cite-pop';
+    pop.hidden = true;
+    document.body.appendChild(pop);
+    var owner = null;
+
+    function close() {
+      pop.hidden = true;
+      owner = null;
+    }
+
+    document.addEventListener('click', function (e) {
+      var btn = e.target.closest('.cite');
+      if (!btn) {
+        if (!pop.contains(e.target)) close();
+        return;
+      }
+      if (btn === owner) { close(); return; }
+      owner = btn;
+      pop.innerHTML = REFS[btn.dataset.ref] || '';
+      pop.hidden = false;
+      var r = btn.getBoundingClientRect();
+      var left = r.left + window.scrollX;
+      var maxLeft = window.scrollX + document.documentElement.clientWidth
+        - pop.offsetWidth - 16;
+      pop.style.left = Math.max(16, Math.min(left, maxLeft)) + 'px';
+      pop.style.top = (r.bottom + window.scrollY + 6) + 'px';
+    });
+    document.addEventListener('keydown', function (e) {
+      if (e.key === 'Escape') close();
+    });
+    window.addEventListener('resize', close);
   });
 
   // Deck-style scrolling: one wheel notch (or arrow key) moves exactly one

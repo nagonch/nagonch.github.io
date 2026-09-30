@@ -9,17 +9,21 @@ Australian Centre for Robotics and School of Aerospace, Mechanical and
 Mechatronic Engineering, The University of Sydney
 
 [caption]
-Fully reflective sugar box. Yellow outline = estimated pose. Flip through the
-methods.
+Flip through the methods to compare tracking quality.
 
 [summary]
-- Reflective objects break appearance-based 6DoF trackers: their appearance
-  changes as they mirror the environment.
+- In object tracking, the points between the frames are mainly
+identified based on their color.
+- Reflective objects break this assumption: their appearance
+changes as they move.
 - We track from a light field instead, and use the reflections as a pose cue.
-- Each frame is decomposed into geometry, a diffuse albedo, and the
-  environment map it reflects: a relightable surface light field.
+- We process the light field image of each frame into a depth
+map, surface normals map, albedo image, and the reflected environment
+map, resulting in relightable surface light field of the object.
 - Pose is refined by relighting under the recovered environment map and
-  minimizing the photometric residual.
-- New dataset: YCBInEOAT re-rendered as light fields at four reflectivity
-  levels. Ours is the only method that holds its accuracy on fully reflective
-  objects.
+minimizing the photometric residual.
+- New dataset: YCBInEOAT<sup><button type="button" class="cite"
+data-ref="wen2020">[1]</button></sup> re-rendered as light fields at
+four reflectivity
+levels. Ours is the only method that holds its accuracy on fully reflective
+objects.

@@ -2,5 +2,13 @@
 Real captures
 
 [body]
-A mustard bottle on a robot arm, bare and foil-wrapped, captured with a
-17-view light field camera at 10&nbsp;mm baseline. Same protocol as above.
+- A mustard bottle on a UR5e robot arm, plain and then foil-wrapped, 46 frames
+each, captured with a 17-view EPIModule light field camera at 10&nbsp;mm
+baseline.
+- Ground truth comes from the robot kinematics via hand-eye calibration,
+refined per frame by aligning the object silhouette. Both sequences are
+released with the dataset.
+- Ours is best or tied on every metric on both sequences, and cuts
+BundleSDF<sup><button type="button" class="cite"
+data-ref="wen2023bundlesdf">[4]</button></sup>'s
+rotation error by roughly a third.

@@ -2,14 +2,18 @@
 Method
 
 [body]
-- Segment the object, estimate depth robustly against reflections,
-  back-project to points and normals.
-- Every point is seen from all subviews. A dichromatic model splits its colors
-  into a per-point diffuse albedo and one environment map shared by all
-  points.
-- Coarse pose: feature matching on the diffuse colors, with the reflections
-  removed.
-- Refinement: transform the source, relight it under the accumulated
-  environment map, render, and descend the photometric residual.
-- A moving object mirrors new parts of the scene, so the environment map fills
-  in and the signal sharpens over the sequence.
+- We first process our light field into a depth map and a surface normals map
+in a way that is robust to specular reflections.
+- We then use this geometry to decompose the object's appearance into a
+per-point diffuse albedo and an environment map of the surrounding
+illumination, shared by all points.
+- This results in a surface light field representing the frame. We align the
+object in two frames by aligning their surface light fields.
+- In practice, we first combine LoFTR<sup><button type="button" class="cite"
+data-ref="sun2021loftr">[2]</button></sup> feature matching on the albedos
+with colored ICP on the point clouds to find a coarse object transform.
+- We then refine the pose: we transform the source surface light field, relight
+it under the environment map recovered so far, render it, and minimize the
+photometric residual against the observed frame by gradient descent.
+- As the object moves, it reflects new parts of the scene, so the environment
+map fills in and the relighting signal sharpens over the sequence.
