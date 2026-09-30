@@ -1,0 +1,6 @@
+[heading]
+Acknowledgments
+
+[body]
+This work was supported in part by funding from the Ford Motor Company and
+through the NVIDIA Academic Grant Program.

@@ -1,0 +1,15 @@
+[heading]
+Dataset
+
+[body]
+We render objects from YCBInEOAT into light fields at multiple reflectivities.
+Play with the widget.
+
+- 8 sequences, 4 YCB objects, in two variants: the original mesh and a cube on
+  the same trajectory.
+- Per frame: 5&times;5 subviews of 640&times;480 at 5&nbsp;mm baseline, plus
+  masks, ground truth depth, 6D pose and calibration.
+- Four reflectivity levels r&nbsp;&isin;&nbsp;{0.0, 0.5, 0.7, 1.0}. Geometry,
+  lighting and pose are identical across levels.
+- Simulated RGB-D sensor depth that collapses on shiny surfaces, like a real
+  RealSense.

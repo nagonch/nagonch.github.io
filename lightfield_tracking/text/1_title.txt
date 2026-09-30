@@ -1,0 +1,25 @@
+[title]
+Reflection-Robust 6DoF Object Tracking with Light Fields
+
+[venue]
+ACCV 2026
+
+[affiliation]
+Australian Centre for Robotics and School of Aerospace, Mechanical and
+Mechatronic Engineering, The University of Sydney
+
+[caption]
+Fully reflective sugar box. Yellow outline = estimated pose. Flip through the
+methods.
+
+[summary]
+- Reflective objects break appearance-based 6DoF trackers: their appearance
+  changes as they mirror the environment.
+- We track from a light field instead, and use the reflections as a pose cue.
+- Each frame is decomposed into geometry, a diffuse albedo, and the
+  environment map it reflects: a relightable surface light field.
+- Pose is refined by relighting under the recovered environment map and
+  minimizing the photometric residual.
+- New dataset: YCBInEOAT re-rendered as light fields at four reflectivity
+  levels. Ours is the only method that holds its accuracy on fully reflective
+  objects.

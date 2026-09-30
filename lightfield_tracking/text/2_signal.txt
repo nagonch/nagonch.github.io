@@ -1,0 +1,10 @@
+[heading]
+Reflections are a pose signal
+
+[body]
+- A moving reflective point changes color as it is re-illuminated, so plain
+  color matching fails.
+- Monocular color gives only a shallow dip in the loss; raw light field EPIs
+  ignore the re-illumination.
+- Relit under the environment map, the loss drops to zero at the true motion:
+  the reflection carries the pose.

@@ -1,0 +1,6 @@
+[heading]
+Real captures
+
+[body]
+A mustard bottle on a robot arm, bare and foil-wrapped, captured with a
+17-view light field camera at 10&nbsp;mm baseline. Same protocol as above.

@@ -1,0 +1,15 @@
+[heading]
+Method
+
+[body]
+- Segment the object, estimate depth robustly against reflections,
+  back-project to points and normals.
+- Every point is seen from all subviews. A dichromatic model splits its colors
+  into a per-point diffuse albedo and one environment map shared by all
+  points.
+- Coarse pose: feature matching on the diffuse colors, with the reflections
+  removed.
+- Refinement: transform the source, relight it under the accumulated
+  environment map, render, and descend the photometric residual.
+- A moving object mirrors new parts of the scene, so the environment map fills
+  in and the signal sharpens over the sequence.

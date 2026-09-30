@@ -133,8 +133,8 @@
   <div class="container">
     <!-- Nerfies-style title block: centred title, linked authors, affiliation. -->
     <div class="title-block has-text-centered">
-      <h1 class="title is-1 publication-title"><img class="title-icon" src="./static/images/axis-favicon.svg" alt="">Reflection-Robust 6DoF Object Tracking with Light Fields</h1>
-      <div class="publication-venue">ACCV 2026</div>
+      <h1 class="title is-1 publication-title"><img class="title-icon" src="./static/images/axis-favicon.svg" alt=""><!-- txt:title.title:inline -->Reflection-Robust 6DoF Object Tracking with Light Fields<!-- /txt --></h1>
+      <div class="publication-venue"><!-- txt:title.venue:inline -->ACCV 2026<!-- /txt --></div>
       <div class="is-size-5 publication-authors">
         <span class="author-block">
           <a href="https://www.linkedin.com/in/nikolai-goncharov-2931a31a5/">Nikolai Goncharov</a>,</span>
@@ -142,7 +142,7 @@
           <a href="https://dgd.vision/">Donald G. Dansereau</a></span>
       </div>
       <div class="is-size-5 publication-authors">
-        <span class="author-block">Australian Centre for Robotics and School of Aerospace, Mechanical and Mechatronic Engineering, The University of Sydney</span>
+        <span class="author-block"><!-- txt:title.affiliation:inline -->Australian Centre for Robotics and School of Aerospace, Mechanical and Mechatronic Engineering, The University of Sydney<!-- /txt --></span>
       </div>
       <!-- Nerfies link buttons. Icons are inline SVGs of Font Awesome Free
            (fab github, far images; CC BY 4.0), in place of the 1.2 MB script. -->
@@ -176,12 +176,11 @@
           </div>
           <div class="lf-viewer" id="hero-viewer"></div>
         </div>
-        <p class="figure-caption">
-          Fully reflective sugar box. Yellow outline = estimated pose. Flip through the methods.
-        </p>
+        <p class="figure-caption"><!-- txt:title.caption:inline -->Fully reflective sugar box. Yellow outline = estimated pose. Flip through the methods.<!-- /txt --></p>
       </div>
       <div class="column is-half">
         <div class="content">
+          <!-- txt:title.summary -->
           <ul>
             <li>Reflective objects break appearance-based 6DoF trackers: their appearance changes as they mirror the environment.</li>
             <li>We track from a light field instead, and use the reflections as a pose cue.</li>
@@ -189,6 +188,7 @@
             <li>Pose is refined by relighting under the recovered environment map and minimizing the photometric residual.</li>
             <li>New dataset: YCBInEOAT re-rendered as light fields at four reflectivity levels. Ours is the only method that holds its accuracy on fully reflective objects.</li>
           </ul>
+          <!-- /txt -->
         </div>
       </div>
     </div>
@@ -197,13 +197,15 @@
 
 <section class="section slide">
   <div class="container">
-    <h2 class="title is-3" id="signal">Reflections are a pose signal</h2>
+    <h2 class="title is-3" id="signal"><!-- txt:signal.heading:inline -->Reflections are a pose signal<!-- /txt --></h2>
     <div class="content">
+      <!-- txt:signal.body -->
       <ul>
         <li>A moving reflective point changes color as it is re-illuminated, so plain color matching fails.</li>
         <li>Monocular color gives only a shallow dip in the loss; raw light field EPIs ignore the re-illumination.</li>
         <li>Relit under the environment map, the loss drops to zero at the true motion: the reflection carries the pose.</li>
       </ul>
+      <!-- /txt -->
     </div>
     <div class="figure-block">
       <video autoplay muted loop playsinline preload="metadata"
@@ -217,8 +219,9 @@
 
 <section class="section slide">
   <div class="container">
-    <h2 class="title is-3" id="method">Method</h2>
+    <h2 class="title is-3" id="method"><!-- txt:method.heading:inline -->Method<!-- /txt --></h2>
     <div class="content">
+      <!-- txt:method.body -->
       <ul>
         <li>Segment the object, estimate depth robustly against reflections, back-project to points and normals.</li>
         <li>Every point is seen from all subviews. A dichromatic model splits its colors into a per-point diffuse albedo and one environment map shared by all points.</li>
@@ -226,6 +229,7 @@
         <li>Refinement: transform the source, relight it under the accumulated environment map, render, and descend the photometric residual.</li>
         <li>A moving object mirrors new parts of the scene, so the environment map fills in and the signal sharpens over the sequence.</li>
       </ul>
+      <!-- /txt -->
     </div>
     <div class="figure-block">
       <img loading="lazy" decoding="async" src="./static/images/paper/figure_overview_final.png"
@@ -237,8 +241,9 @@
 
 <section class="section slide">
   <div class="container">
-    <h2 class="title is-3" id="dataset">Dataset</h2>
+    <h2 class="title is-3" id="dataset"><!-- txt:dataset.heading:inline -->Dataset<!-- /txt --></h2>
     <div class="content">
+      <!-- txt:dataset.body -->
       <p>We render objects from YCBInEOAT into light fields at multiple reflectivities. Play with the widget.</p>
       <ul>
         <li>8 sequences, 4 YCB objects, in two variants: the original mesh and a cube on the same trajectory.</li>
@@ -246,6 +251,7 @@
         <li>Four reflectivity levels r&nbsp;&isin;&nbsp;{0.0, 0.5, 0.7, 1.0}. Geometry, lighting and pose are identical across levels.</li>
         <li>Simulated RGB-D sensor depth that collapses on shiny surfaces, like a real RealSense.</li>
       </ul>
+      <!-- /txt -->
     </div>
 
     <div class="lf-explorer">
@@ -276,13 +282,11 @@
 
 <section class="section slide">
   <div class="container">
-    <h2 class="title is-3" id="results">Results</h2>
+    <h2 class="title is-3" id="results"><!-- txt:results.heading:inline -->Results<!-- /txt --></h2>
     <div class="content">
-      <p>
-        Baselines get the central subview and the simulated sensor depth; ours gets the full
-        light field. Ours is the only method stable across reflectivity. Yellow outline =
-        estimated pose.
-      </p>
+      <!-- txt:results.body -->
+      <p>Baselines get the central subview and the simulated sensor depth; ours gets the full light field. Ours is the only method stable across reflectivity. Yellow outline = estimated pose.</p>
+      <!-- /txt -->
     </div>
 
     <div class="lf-explorer">
@@ -321,12 +325,11 @@
 
 <section class="section slide">
   <div class="container">
-    <h2 class="title is-3" id="captured">Real captures</h2>
+    <h2 class="title is-3" id="captured"><!-- txt:captured.heading:inline -->Real captures<!-- /txt --></h2>
     <div class="content">
-      <p>
-        A mustard bottle on a robot arm, bare and foil-wrapped, captured with a 17-view
-        light field camera at 10&nbsp;mm baseline. Same protocol as above.
-      </p>
+      <!-- txt:captured.body -->
+      <p>A mustard bottle on a robot arm, bare and foil-wrapped, captured with a 17-view light field camera at 10&nbsp;mm baseline. Same protocol as above.</p>
+      <!-- /txt -->
     </div>
 
     <div class="lf-explorer">
@@ -348,12 +351,11 @@
 
 <section class="section slide">
   <div class="container">
-    <h2 class="title is-3" id="acknowledgments">Acknowledgments</h2>
+    <h2 class="title is-3" id="acknowledgments"><!-- txt:acknowledgments.heading:inline -->Acknowledgments<!-- /txt --></h2>
     <div class="content">
-      <p>
-        This work was supported in part by funding from the Ford Motor Company and
-        through the NVIDIA Academic Grant Program.
-      </p>
+      <!-- txt:acknowledgments.body -->
+      <p>This work was supported in part by funding from the Ford Motor Company and through the NVIDIA Academic Grant Program.</p>
+      <!-- /txt -->
     </div>
     <div class="logos">
       <a href="https://roboticimaging.org/">
